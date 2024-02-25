@@ -1,7 +1,6 @@
 %{
 /***Authors:Stelios Athanasiou 4581
-            Dimitris Zigouris 4631
-            Giorgos Arvanitis 4592
+            Yiannis Gonianakis 4863
 ***/
 #define YY_DECL int alpha_yylex(void* ylval)
 #include <stdio.h>
@@ -36,6 +35,9 @@ static alpha_token_t *temp=NULL;
 
 //Global int variable, which counts the tokens
 static int token_num=0;
+
+//Function to parse the multiline comments
+char *parseMulticomment();
 
 // Enums and corresponding arrays for Keywords,Operators and Punctuation Marks 
 char* Keywords_arr[16]=
@@ -153,7 +155,8 @@ digit [0-9]
 underscore [_]
 float {digit}*\.{digit}*
 string \"(\\.|[^\"])*\"
-comment \/\/.*|\/\*(.|\n)*?\*\/
+comment \/\/.*
+multicomment \/\*
 
 /*** Rules Section ***/
 %%
@@ -197,6 +200,12 @@ comment \/\/.*|\/\*(.|\n)*?\*\/
   temp=createToken(yylineno,token_num,yytext,yytext,"COMMENT");
  appendToken(temp);
 }
+{multicomment} {
+  ++token_num;
+  char *text = parseMulticomment();
+  temp=createToken(yylineno,token_num,text,text,"MULTICOMMENT");
+  appendToken(temp);
+}
 {ws} {
   ;
 }
@@ -233,28 +242,41 @@ void appendToken(alpha_token_t *new){
 }
 //a Print function, that takes as a parameter the stream at which we want to print the output
 void Print(FILE *stream) { 
-  printf("Lexicographical analysis of the given input is being processed...\n");
-  fprintf(stream,"=======================Lexical Analysis==========================\n");
-  alpha_token_t *current = head;
-  while (current) {
-    if(!strcmp(current->type,"STRING")){
-      fprintf(stream,"%d: #%d %s %s %s <-char*\n", current->numline, current->numToken,current->raw_content, current->type, current->content);
+    printf("Lexicographical analysis of the given input is being processed...\n");
+    fprintf(stream,"=======================Lexical Analysis==========================\n");
+    alpha_token_t *current = head;
+    while (current) {
+        // Determine the width for each field
+        int numline_width = 1; // Adjust as needed
+        int numToken_width = 2; // Adjust as needed
+        int raw_content_width = 20; // Adjust as needed
+        int type_width = 10; // Adjust as needed
+        int content_width = 10; // Adjust as needed
+        
+        // Print with aligned fields
+        if(!strcmp(current->type,"STRING")) {
+            fprintf(stream,"%-*d: #%-*d %-*s %-*s %-*s <-char*\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        } else if(!strcmp(current->type,"IDENTIFIER")) {
+            fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-char*\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        
+        } else if(!strcmp(current->type,"KEYWORD") || !strcmp(current->type,"OPERATOR") || !strcmp(current->type,"PUNCT_MARK")) {
+            fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-enumerated\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+  
+
+        }else if(!strcmp(current->type,"COMMENT") || !strcmp(current->type,"MULTICOMMENT")) {
+            fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-enumerated\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        
+        
+        } else if(!strcmp(current->type,"INTEGER")) {
+            fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-integer\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        } else {
+            fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-float\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        }
+        current = current->next;
     }
-    else if(!strcmp(current->type,"IDENTIFIER")){
-      fprintf(stream,"%d: #%d \"%s\" %s %s <-char*\n", current->numline, current->numToken,current->raw_content, current->type, current->content);
-    }
-    else if(!strcmp(current->type,"KEYWORD")||!strcmp(current->type,"OPERATOR")||!strcmp(current->type,"PUNCT_MARK")||!strcmp(current->type,"COMMENT")){
-      fprintf(stream,"%d: #%d \"%s\" %s %s <-enumerated\n", current->numline, current->numToken,current->raw_content, current->type, current->content);
-    }
-    else if(!strcmp(current->type,"INTEGER")){
-      fprintf(stream,"%d: #%d \"%s\" %s %s <-integer\n", current->numline, current->numToken,current->raw_content, current->type, current->content);
-    }
-    else{
-      fprintf(stream,"%d: #%d \"%s\" %s %s <-float\n", current->numline, current->numToken,current->raw_content, current->type, current->content);
-    }
-    current = current->next;
-  }
 }
+
+
 //function to free the memory allocated for the tokens
 void FreeFunct(){
   alpha_token_t *temp;
@@ -264,4 +286,29 @@ void FreeFunct(){
     current = current->next;
     free(temp);
   }
+}
+
+char *parseMulticomment() {
+  int c;
+  char *text;
+  
+  while((c = input()) != EOF) {
+
+    if(c == '*') {
+      if((c = input()) == '/') {
+        text = strdup(yytext);
+        return text;
+      }
+    }else{
+      unput(c);
+    }
+    if(c =='/') {
+      if((c = input()) == '*') {
+        parseMulticomment();
+      }else{
+        unput(c);
+      }
+    }
+  }
+
 }

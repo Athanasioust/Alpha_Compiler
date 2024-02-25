@@ -1,28 +1,12 @@
-// Sample test file for lexical analysis
+x = 10;
+// My line of comment
 
-// Variable declaration
-int x = 10;
-float y = 3.14;
-string str = "hello world";
+str = "HELLO";
 
-// Control flow
-if (x > 5) {
-    printf("x is greater than 5\n");
-} else {
-    printf("x is not greater than 5\n");
+if(x<20) x++;
+/* ONELINER */
 
-// Loop
-for (int i = 0; i < 5; i++) {
-    printf("i is %d\n", i);
-}
-
-// Function definition
-int add(int a, int b) {
-    return a + b;
-}
-
-// Function call
-int sum = add(3, 4);
-printf("Sum is %d\n", sum);
-
-// End of file
+/*
+SECOND
+line
+*/
