@@ -37,7 +37,7 @@ static alpha_token_t *temp=NULL;
 static int token_num=0;
 
 //Function to parse the multiline comments
-char *parseMulticomment();
+void parseMulticomment(char * type);
 
 // Enums and corresponding arrays for Keywords,Operators and Punctuation Marks 
 char* Keywords_arr[16]=
@@ -156,9 +156,7 @@ underscore [_]
 float {digit}*\.{digit}*
 string \"(\\.|[^\"])*\"
 comment \/\/.*
-multicomment \/\*(.|\n)*?\*\/
-/* multicomment "/*"
-
+multicomment \/\*
 
 /*** Rules Section ***/
 %%
@@ -203,11 +201,9 @@ multicomment \/\*(.|\n)*?\*\/
  appendToken(temp);
 }
 {multicomment} {
-  ++token_num;
-  printf("I AM HERE\n");
-  //char *text = parseMulticomment();
-  temp=createToken(yylineno,token_num,yytext,yytext,"MULTICOMMENT");
-  appendToken(temp);
+  parseMulticomment("MULTI_COMMENT");
+  //temp=createToken(yylineno,token_num,yytext,yytext,"MULTI_COMMENT");
+  //appendToken(temp);
 }
 {ws} {
   ;
@@ -250,28 +246,25 @@ void Print(FILE *stream) {
     alpha_token_t *current = head;
     while (current) {
         // Determine the width for each field
-        int numline_width = 1; // Adjust as needed
-        int numToken_width = 2; // Adjust as needed
-        int raw_content_width = 20; // Adjust as needed
-        int type_width = 10; // Adjust as needed
-        int content_width = 10; // Adjust as needed
+        int numline_width = 4;
+        int numToken_width = 4;
+        int raw_content_width = 0;
+        int type_width = 15;
+        int content_width = 10;
         
         // Print with aligned fields
         if(!strcmp(current->type,"STRING")) {
             fprintf(stream,"%-*d: #%-*d %-*s %-*s %-*s <-char*\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        
         } else if(!strcmp(current->type,"IDENTIFIER")) {
             fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-char*\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
-        
-        } else if(!strcmp(current->type,"KEYWORD") || !strcmp(current->type,"OPERATOR") || !strcmp(current->type,"PUNCT_MARK") || !strcmp(current->type,"COMMENT")) {
-            fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-enumerated\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
-  
 
-        }else if(!strcmp(current->type,"MULTICOMMENT")) {
+        } else if(!strcmp(current->type,"KEYWORD") || !strcmp(current->type,"OPERATOR") || !strcmp(current->type,"PUNCT_MARK") || !strcmp(current->type,"COMMENT") || (!strcmp(current->type,"NESTED_COMMENT")) ||!strcmp(current->type,"MULTI_COMMENT")) {
             fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-enumerated\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
-        
         
         } else if(!strcmp(current->type,"INTEGER")) {
             fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-integer\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
+        
         } else {
             fprintf(stream,"%-*d: #%-*d \"%-*s\" %-*s %-*s <-float\n", numline_width, current->numline, numToken_width, current->numToken, raw_content_width, current->raw_content, type_width, current->type, content_width, current->content);
         }
@@ -291,27 +284,47 @@ void FreeFunct(){
   }
 }
 
-char *parseMulticomment() {
-  int c;
-  char *text;
-  printf("I AM IN parseMULTICOMMENT\n");
-  while((c = input()) != EOF) {
-    if(c == '*') {
-      if((c = input()) == '/') {
-        text = strdup(yytext);
-        return text;
-      }
-    }else{
-      unput(c);
-    }
-    if(c =='/') {
-      if((c = input()) == '*') {
-        text = parseMulticomment();
-      }else{
-        unput(c);
-      }
-    }
-    return text;
-  }
+//Function to parse the multiline comments
+void parseMulticomment(char * type) {
+	char next;
+	int starting_line = yylineno;// beggining of the comment
+  char *lexeme = strdup(yytext);// the comment itself "/*"
 
+  //look for the end of the comment
+	while(1){
+		next = input();
+
+		if(next == EOF){
+			printf("EOF, not closing comment");
+			exit(0);s
+		}
+    
+		char look_ahead;
+		if(next == '*'){
+			look_ahead = input();
+
+			if(look_ahead == EOF){
+			  printf("EOF, not closing comment");
+				exit(0);
+			}
+
+			if(look_ahead == '/'){// end of the comment
+        ++token_num;
+        temp=createToken(starting_line,token_num,lexeme,lexeme, type);
+        appendToken(temp);
+        break;
+			}
+		} else if (next == '/'){//check for nested comments
+			look_ahead = input();
+
+			if(look_ahead == EOF){
+			  printf("EOF, not closing comment");
+				exit(0);
+			}
+
+			if(look_ahead == '*'){
+				parseMulticomment("NESTED_COMMENT");
+			}
+		}
+	}
 }

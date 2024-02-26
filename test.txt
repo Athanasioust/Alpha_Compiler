@@ -1,16 +1,27 @@
+ // My test file 
+x, b, y, z;
+
 x = 10;
-// My line of comment
+b = 4000;
+y = 5.5;
+z = "HELLO WORLD";
 
-str = "HELLO";
+str = "split
+ string";
 
-if(x<20) x++;
-/* ONELINER */
-
-funct(a, b) {
+function(a,b) {
     return a+b;
 }
 
-/*
-SECOND
-line
+if(x<20) x++;
+
+/* single line multiline comment */
+
+/* two
+lines
+*/
+
+/* outer comment
+/* nested comment
+*/
 */
