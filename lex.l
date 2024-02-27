@@ -296,7 +296,7 @@ void parseMulticomment(char * type) {
 
 		if(next == EOF){
 			printf("EOF, not closing comment");
-			exit(0);s
+			exit(0);
 		}
     
 		char look_ahead;
