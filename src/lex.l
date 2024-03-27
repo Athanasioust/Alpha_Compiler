@@ -1,16 +1,32 @@
+/* Flex options */
+%option yylineno
+
 %{
-/***Authors:Stelios Athanasiou 4581
-            Yiannis Gonianakis 4863
-***/
-#define YY_DECL int alpha_yylex(void* ylval)
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdbool.h>
+    #include <stdlib.h>
+    #include <stdio.h>
+	#include <string.h>
+	#include <assert.h>
+	#include <stdbool.h>
+    #include "../include/parser.h"
+	#include "../include/lex.h"
+	
+	#ifdef __linux__
+	#	define FILE_EOF '\0'
+	#else
+	#	define FILE_EOF EOF
+	#endif
+	
+	#ifdef DEBUG
+	#	define DPRINTF(...) fprintf(stderr, __VA_ARGS__)
+	#else
+	#	define DPRINTF(...)
+	#endif
+
+	#define ERROR(message) \
+		fprintf(stderr, "%d : %s : %s\n", yylineno, yytext, message); \
+		exit(0);
 %}
 
-/* Flex macros */
 digit   [0-9]
 space   [\r\n \t\v]
 id      [a-zA-Z][a-zA-Z_0-9]*
@@ -104,16 +120,16 @@ char* process_string(char* string){
     size_t len = strlen(string);
 	char *buffer = malloc(len);
 
-	string[strlen(string)-1] = '\0'; // ignore closing "
+	string[strlen(string)-1] = '\0'; 
 	
-    int i = 1; // start from 1 to ignore opening "
+    int i = 1;
 	int j = 0;
 
     while(string[i]){
         if(string[i] == '\\'){
 			++i;
             switch(string[i]){
-                case '\0': // e.g. "unclosedstring\" <- closing double quote is getting escaped by backslash
+                case '\0': 
                     ERROR("Unclosed string");
                 case 'a':
                     buffer[j] = '\a';
