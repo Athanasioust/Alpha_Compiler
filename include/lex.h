@@ -3,8 +3,6 @@
 
 #include <stdio.h>
 
-void block_comments();
-
-char* process_string(char*);
+void parseMulticomment(char *);
 
 #endif // LEX_H

@@ -15,8 +15,6 @@ Function* makeFunc(char* key, int lineno, int scope){
 
 	return temp;
 }
-
-
 // Function to create a new library function
 void libFunc(SymTable_T head, char* name){
     SymbolTableEntry* temp_entry = malloc(sizeof(struct SymbolTableEntry));
@@ -29,11 +27,11 @@ void libFunc(SymTable_T head, char* name){
     SymTable_insert(head, name, temp_entry);
 }
 // Function to check if a variable is legal
-int isLegal(int scope, int func_scope){
+int LegalCheck(int scope, int func_scope){
     return (scope == 0 || scope > func_scope);
 }
 // Function to check if a variable is a variable
-int isVar(SymbolTableEntry* temp){
+int VarCheck(SymbolTableEntry* temp){
     return temp->type == VAR_FORMAL || temp->type == VAR_GLOBAL || temp->type == VAR_LOCAL;
 }
 // Function to create a new variable
@@ -62,9 +60,9 @@ int countDigits(int num) {
 // Function to handle a function call (term to lvalue dec) FIXED
 void HANDLE_TERM_TO_LVALUE_DEC(SymbolTableEntry* entry, int func_scope){
 
-    if (!entry || isLegal(entry->value.varVal->scope, func_scope)) return;
+    if (!entry || LegalCheck(entry->value.varVal->scope, func_scope)) return;
 
-    if(!isVar(entry)){
+    if(!VarCheck(entry)){
         fprintf(stderr, "The function '%s' cannot be referenced before the decrement operator.\n", entry->value.funcVal->name);
         return;
     }
@@ -75,7 +73,7 @@ void HANDLE_TERM_TO_LVALUE_DEC(SymbolTableEntry* entry, int func_scope){
 }
 // Function to handle a function call (prim to lvalue) FIXED
 void HANDLE_PRIM_TO_LVALUE(SymbolTableEntry* entry, int func_scope){
-    if (!entry || !isVar(entry) || isLegal(entry->value.varVal->scope, func_scope)) return;
+    if (!entry || !VarCheck(entry) || LegalCheck(entry->value.varVal->scope, func_scope)) return;
     fprintf(stderr, "The variable '%s' in scope %d is not accessible due to a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
     return;
 }
@@ -94,9 +92,9 @@ SymbolTableEntry* HANDLE_LVALUE_TO_GLOBAL_IDENT(SymTable_T global, char* key, in
 // Function to handle a function call (assignexpr to lvalue assign expression) FIXED
 void HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION(SymbolTableEntry* entry, int func_scope){
 
-    if (!entry || isLegal(entry->value.varVal->scope, func_scope)) return;
+    if (!entry || LegalCheck(entry->value.varVal->scope, func_scope)) return;
 
-    if(!isVar(entry)){
+    if(!VarCheck(entry)){
         fprintf(stderr, "The function '%s' cannot be assigned to as an lvalue.\n", entry->value.funcVal->name);
         return;
     }
@@ -135,7 +133,7 @@ char* HANDLE_IDLIST_IDENT(SymTable_T table, char* key, int lineno, int scope){
     }
 
     if((temp = SymTable_lookup(table, key))){
-        if(!isVar(temp)){
+        if(!VarCheck(temp)){
             fprintf(stderr, "Function with name %s is active, can't initialize formal argument with same name,function already exists.\n", key);
             return NULL;
         }
@@ -171,9 +169,9 @@ char* HANDLE_FUNCTION_WITHOUT_NAME(SymTable_T table, int anon_count, int lineno,
 }
 // Function to handle a function call (term to inc lvalue ) FIXED
 void HANDLE_TERM_TO_INC_LVALUE(SymbolTableEntry* entry, int func_scope){
-    if (!entry || isLegal(entry->value.varVal->scope, func_scope)) return;
+    if (!entry || LegalCheck(entry->value.varVal->scope, func_scope)) return;
 
-    if(!isVar(entry)){
+    if(!VarCheck(entry)){
         fprintf(stderr, "The function '%s' cannot be referenced after the increment operator.\n", entry->value.funcVal->name);
         return;
     }
@@ -186,12 +184,12 @@ fprintf(stderr, "The variable '%s' in scope %d is inaccessible because of a func
 void HANDLE_TERM_TO_LVALUE_INC(SymbolTableEntry* entry, int func_scope){
     if(!entry) return;
 
-    if(!isVar(entry)){
+    if(!VarCheck(entry)){
         fprintf(stderr, "The function '%s' cannot be referenced before the increment operator.\n", entry->value.funcVal->name);
         return;
     }
 
-    if(isLegal(entry->value.varVal->scope, func_scope)) return;
+    if(LegalCheck(entry->value.varVal->scope, func_scope)) return;
 
     fprintf(stderr, "The variable '%s' in scope %d is inaccessible because of a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
 
@@ -202,12 +200,12 @@ void HANDLE_TERM_TO_LVALUE_INC(SymbolTableEntry* entry, int func_scope){
 void HANDLE_TERM_TO_DEC_LVALUE(SymbolTableEntry* entry, int func_scope){
     if(!entry) return;
 
-    if(!isVar(entry)){
+    if(!VarCheck(entry)){
         fprintf(stderr, "The function %s cannot be referenced after the -- operator.\n", entry->value.funcVal->name);
         return;
     }
 
-    if(isLegal(entry->value.varVal->scope, func_scope)) return;
+    if(LegalCheck(entry->value.varVal->scope, func_scope)) return;
 
     fprintf(stderr, "Variable %s at scope %d is inaccessible due to function declaration at scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
 
@@ -230,7 +228,7 @@ char* HANDLE_FUNCTION_WITH_NAME(SymTable_T table, char* key, int lineno, int sco
             return NULL;
         }
 
-        if(isVar(temp)){
+        if(VarCheck(temp)){
         fprintf(stderr, "Cannot redefine %s as a function because it is already a variable.\n", key);
             return NULL;
         }

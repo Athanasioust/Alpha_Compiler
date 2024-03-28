@@ -4,8 +4,8 @@
 #include "structs.h"
 #include "symtable.h"
 
+
 char* HANDLE_FUNCTION_WITH_NAME(SymTable_T, char*, int, int);
-void libFunc(SymTable_T, char*);
 void HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION(SymbolTableEntry*, int);
 SymbolTableEntry* HANDLE_LVALUE_TO_GLOBAL_IDENT(SymTable_T, char*, int, int);
 void HANDLE_TERM_TO_LVALUE_DEC(SymbolTableEntry*, int);
@@ -15,9 +15,12 @@ void HANDLE_TERM_TO_LVALUE_INC(SymbolTableEntry*, int);
 char* HANDLE_FUNCTION_WITHOUT_NAME(SymTable_T, int, int, int);
 void HANDLE_TERM_TO_INC_LVALUE(SymbolTableEntry*, int);
 SymbolTableEntry* HANDLE_LVALUE_TO_IDENT(SymTable_T, char*, int, int);
-SymbolTableEntry* HANDLE_LVALUE_TO_LOCAL_IDENT(SymTable_T, SymTable_T, char*,
-                                               int, int);
+SymbolTableEntry* HANDLE_LVALUE_TO_LOCAL_IDENT(SymTable_T, SymTable_T, char*,int, int);
 void HANDLE_TERM_TO_DEC_LVALUE(SymbolTableEntry*, int);
+
+int VarCheck(SymbolTableEntry* );
+int LegalCheck(int ,int );
+void libFunc(SymTable_T, char*);
 
 
 #endif

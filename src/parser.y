@@ -44,20 +44,21 @@
 %type<exprval> lvalue
 
 
-%right ASSIGN
+
 %left OR
 %left AND
+%right ASSIGN
 %nonassoc EQUAL NEQUAL
 %nonassoc GT GET LT LET
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 %left PLUS MINUS
 %left MUL DIV MOD
-%right NOT INC DEC
 %left DOT DOUBLE_DOT
-%left SQUARE_OPEN SQUARE_CLOSED 
 %left PAR_OPEN PAR_CLOSED
+%left SQUARE_OPEN SQUARE_CLOSED 
 %left UMINUS
+%right NOT INC DEC
 
 %%
 
