@@ -37,7 +37,7 @@
 %token<sval> IDENT STRING IF ELSE WHILE FOR FUNCTION RETURN BREAK
              CONTINUE AND NOT OR LOCAL TRUE FALSE NIL ASSIGN PLUS
              MINUS MUL DIV MOD EQUAL NEQUAL INC DEC GT LT GET LET
-             CURLY_OPEN CURLY_CLOSED SQUARE_OPEN SQUARE_CLOSED
+             BRACKET_OPEN BRACKET_CLOSED SQUARE_OPEN SQUARE_CLOSED
              PAR_OPEN PAR_CLOSED SEMI_COLON COMMA COLON DOUBLE_COLON
              DOT DOUBLE_DOT UMINUS
 %type<sval> funcname
@@ -163,9 +163,9 @@ indexed_alt:    COMMA indexedelem indexed_alt
                 |
                 ;
 
-indexedelem:    CURLY_OPEN expr COLON expr CURLY_CLOSED ;
+indexedelem:    BRACKET_OPEN expr COLON expr BRACKET_CLOSED ;
 
-block:          CURLY_OPEN {scope++; current_table = SymTable_next(current_table);} stmts CURLY_CLOSED {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table);};
+block:          BRACKET_OPEN {scope++; current_table = SymTable_next(current_table);} stmts BRACKET_CLOSED {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table);};
 
 funcdef:        funcname PAR_OPEN {scope++; current_table = SymTable_next(current_table);} idlist PAR_CLOSED {scope--; current_table = SymTable_prev(current_table); func_stack_push(scope);} block {func_stack_pop();} ;
 

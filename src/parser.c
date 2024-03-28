@@ -156,8 +156,8 @@ enum yysymbol_kind_t
   YYSYMBOL_LT = 32,                        /* LT  */
   YYSYMBOL_GET = 33,                       /* GET  */
   YYSYMBOL_LET = 34,                       /* LET  */
-  YYSYMBOL_CURLY_OPEN = 35,                /* CURLY_OPEN  */
-  YYSYMBOL_CURLY_CLOSED = 36,              /* CURLY_CLOSED  */
+  YYSYMBOL_BRACKET_OPEN = 35,              /* BRACKET_OPEN  */
+  YYSYMBOL_BRACKET_CLOSED = 36,            /* BRACKET_CLOSED  */
   YYSYMBOL_SQUARE_OPEN = 37,               /* SQUARE_OPEN  */
   YYSYMBOL_SQUARE_CLOSED = 38,             /* SQUARE_CLOSED  */
   YYSYMBOL_PAR_OPEN = 39,                  /* PAR_OPEN  */
@@ -622,7 +622,7 @@ static const char *const yytname[] =
   "STRING", "IF", "ELSE", "WHILE", "FOR", "FUNCTION", "RETURN", "BREAK",
   "CONTINUE", "AND", "NOT", "OR", "LOCAL", "TRUE", "FALSE", "NIL",
   "ASSIGN", "PLUS", "MINUS", "MUL", "DIV", "MOD", "EQUAL", "NEQUAL", "INC",
-  "DEC", "GT", "LT", "GET", "LET", "CURLY_OPEN", "CURLY_CLOSED",
+  "DEC", "GT", "LT", "GET", "LET", "BRACKET_OPEN", "BRACKET_CLOSED",
   "SQUARE_OPEN", "SQUARE_CLOSED", "PAR_OPEN", "PAR_CLOSED", "SEMI_COLON",
   "COMMA", "COLON", "DOUBLE_COLON", "DOT", "DOUBLE_DOT", "UMINUS",
   "LOWER_THAN_ELSE", "$accept", "program", "stmts", "stmt", "expr", "term",
@@ -1422,13 +1422,13 @@ yyreduce:
 
   case 73: /* $@1: %empty  */
 #line 168 "parser.y"
-                           {scope++; current_table = SymTable_next(current_table);}
+                             {scope++; current_table = SymTable_next(current_table);}
 #line 1427 "parser.c"
     break;
 
-  case 74: /* block: CURLY_OPEN $@1 stmts CURLY_CLOSED  */
+  case 74: /* block: BRACKET_OPEN $@1 stmts BRACKET_CLOSED  */
 #line 168 "parser.y"
-                                                                                                       {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table);}
+                                                                                                           {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table);}
 #line 1433 "parser.c"
     break;
 

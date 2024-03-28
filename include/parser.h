@@ -86,8 +86,8 @@ extern int yydebug;
     LT = 287,                      /* LT  */
     GET = 288,                     /* GET  */
     LET = 289,                     /* LET  */
-    CURLY_OPEN = 290,              /* CURLY_OPEN  */
-    CURLY_CLOSED = 291,            /* CURLY_CLOSED  */
+    BRACKET_OPEN = 290,            /* BRACKET_OPEN  */
+    BRACKET_CLOSED = 291,          /* BRACKET_CLOSED  */
     SQUARE_OPEN = 292,             /* SQUARE_OPEN  */
     SQUARE_CLOSED = 293,           /* SQUARE_CLOSED  */
     PAR_OPEN = 294,                /* PAR_OPEN  */
@@ -140,8 +140,8 @@ extern int yydebug;
 #define LT 287
 #define GET 288
 #define LET 289
-#define CURLY_OPEN 290
-#define CURLY_CLOSED 291
+#define BRACKET_OPEN 290
+#define BRACKET_CLOSED 291
 #define SQUARE_OPEN 292
 #define SQUARE_CLOSED 293
 #define PAR_OPEN 294

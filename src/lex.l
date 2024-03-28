@@ -22,9 +22,7 @@
 	#	define DPRINTF(...)
 	#endif
 
-	#define ERROR(message) \
-		fprintf(stderr, "%d : %s : %s\n", yylineno, yytext, message); \
-		exit(0);
+	
 %}
 
 digit   [0-9]
@@ -64,8 +62,8 @@ comment "//".*
 "<"             {return LT;}
 ">="            {return GET;}
 "<="            {return LET;}
-"{"             {return CURLY_OPEN;}
-"}"             {return CURLY_CLOSED;}
+"{"             {return BRACKET_OPEN;}
+"}"             {return BRACKET_CLOSED;}
 "["             {return SQUARE_OPEN;}
 "]"             {return SQUARE_CLOSED;}
 "("             {return PAR_OPEN;}
@@ -107,7 +105,7 @@ comment "//".*
 {space} {}
 
 . {
-	ERROR("Unrecognized token");
+	fprintf(stderr, "%d : %s : Unrecognised token\n", yylineno, yytext);
 }
 
 %%
@@ -130,7 +128,7 @@ char* process_string(char* string){
 			++i;
             switch(string[i]){
                 case '\0': 
-                    ERROR("Unclosed string");
+                    fprintf(stderr, "%d : %s : Unclosed string\n", yylineno, yytext);
                 case 'a':
                     buffer[j] = '\a';
                     break;
@@ -165,7 +163,7 @@ char* process_string(char* string){
                     buffer[j] = '\\';
                     break;
                 default:
-					ERROR("Unrecognized escape character");
+					fprintf(stderr, "%d : %s : Unrecognised escape character\n", yylineno, yytext);
             }
         } else {
             buffer[j] = string[i];
@@ -204,5 +202,5 @@ void block_comments(){
 			continue;
 		}
 	}
-	ERROR("Unclosed comment.\n");	
+	fprintf(stderr, "%d : %s : Unclosed comment\n", yylineno, yytext);
 }
