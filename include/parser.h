@@ -86,8 +86,8 @@ extern int yydebug;
     LT = 287,                      /* LT  */
     GET = 288,                     /* GET  */
     LET = 289,                     /* LET  */
-    BRACKET_OPEN = 290,            /* BRACKET_OPEN  */
-    BRACKET_CLOSED = 291,          /* BRACKET_CLOSED  */
+    CURLY_OPEN = 290,              /* CURLY_OPEN  */
+    CURLY_CLOSED = 291,            /* CURLY_CLOSED  */
     SQUARE_OPEN = 292,             /* SQUARE_OPEN  */
     SQUARE_CLOSED = 293,           /* SQUARE_CLOSED  */
     PAR_OPEN = 294,                /* PAR_OPEN  */
@@ -140,8 +140,8 @@ extern int yydebug;
 #define LT 287
 #define GET 288
 #define LET 289
-#define BRACKET_OPEN 290
-#define BRACKET_CLOSED 291
+#define CURLY_OPEN 290
+#define CURLY_CLOSED 291
 #define SQUARE_OPEN 292
 #define SQUARE_CLOSED 293
 #define PAR_OPEN 294
@@ -159,13 +159,20 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 30 "parser.y"
+#line 25 "parser.y"
 
+    unsigned labelval;
     double nval;
     char* sval;
-    struct SymbolTableEntry* exprval;
+	unsigned int func_addr;
+	char* lib_addr;
+    struct ForLoopPrefix* forprefixval;
+    struct SymbolTableEntry* symval;
+    struct Expr* exprval;
+    struct Call* callval;
+	struct stmt_t* stmtval;
 
-#line 169 "parser.h"
+#line 176 "parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

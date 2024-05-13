@@ -5,11 +5,13 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#define MIN_SIZE 20
-#define MAX_SIZE 2560
+#define MIN_SIZE 256
+#define MAX_SIZE 32768
 #define HASH_MULTIPLIER 65599
 
-// Enum to string
+SymTable_T head;
+SymTable_T current_table;
+
 char* enum_to_s[] = {
     "global variable",
     "local variable",
@@ -18,11 +20,9 @@ char* enum_to_s[] = {
     "library functin"
 }; 
 
+int sizes[] = {MIN_SIZE, 512, 1024, 2048, 4096, 8192, 16384, MAX_SIZE};
 
-// Hash table sizes
-int sizes[] = {MIN_SIZE, 40, 80, 160, 320, 640, 1280, MAX_SIZE};
-
-// Hash function
+/* Return a hash code for key. */
 static unsigned int SymTable_hash(const char *key, size_t max_size){
     size_t ui;
     unsigned int uiHash = 0U;
@@ -31,17 +31,14 @@ static unsigned int SymTable_hash(const char *key, size_t max_size){
     return uiHash % max_size;
 }
 
-// Structs
 typedef struct List* List_T;
 
-// List struct
 struct List {
     char* key;
     SymbolTableEntry* val;
     struct List* next;
 };
 
-// SymTable struct
 struct SymTable{
     size_t max_size;
     size_t length;
@@ -50,7 +47,8 @@ struct SymTable{
     struct SymTable* prev;
 };
 
-// Get size
+/* ================================================= */
+
 size_t get_size(size_t max_size){
 	int index = 0;
 	for(int i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
@@ -63,7 +61,6 @@ size_t get_size(size_t max_size){
     return sizes[(index <= 7 ? index : 7)];
 }
 
-// Functions
 SymTable_T SymTable_new(void){
     SymTable_T table = malloc(sizeof(struct SymTable));
 
@@ -76,7 +73,8 @@ SymTable_T SymTable_new(void){
     return table;
 }
 
-// Free function
+/* ================================================= */
+
 void SymTable_free(SymTable_T oSymTable){
     List_T temp;
     List_T prev;
@@ -106,13 +104,15 @@ void SymTable_free(SymTable_T oSymTable){
     return;
 }
 
-// Get length
+/* ================================================= */
+
 unsigned int SymTable_getLength(SymTable_T oSymTable){ 
     assert(oSymTable);
     return oSymTable->length;
 }
 
-// Rehash function
+/* ================================================= */
+
 void rehash(SymTable_T table){
     size_t i;
     List_T prev_node;
@@ -142,7 +142,7 @@ void rehash(SymTable_T table){
     table->length++;
 }
 
-// Insert function
+
 SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolTableEntry* value){
     List_T new;
     size_t pos;
@@ -168,11 +168,31 @@ SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolT
         new->next = oSymTable->buckets[pos];
         oSymTable->buckets[pos] = new;
     }
+
+	//SymTable_print(oSymTable);
     return new->val;
 }
 
+/* ================================================= */
 
-//Lookup functions
+void SymTable_hide(SymTable_T oSymTable){
+    List_T temp;
+    size_t i;
+    assert(oSymTable);
+
+    for(i = 0; i < oSymTable->max_size; i++){
+        temp = oSymTable->buckets[i];
+        while(temp){
+            temp->val->isActive = 0;
+            temp = temp->next;
+        }
+    }
+
+    return;
+}
+
+/* ================================================= */
+
 SymbolTableEntry* SymTable_lookup(SymTable_T oSymTable, const char *key){
     List_T temp;
     SymTable_T current = oSymTable;
@@ -192,7 +212,7 @@ SymbolTableEntry* SymTable_lookup(SymTable_T oSymTable, const char *key){
 
     return NULL;
 }
-//Lookup here function
+
 SymbolTableEntry* SymTable_lookup_here(SymTable_T oSymTable, const char *key){
     List_T temp;
     assert(oSymTable);
@@ -208,24 +228,8 @@ SymbolTableEntry* SymTable_lookup_here(SymTable_T oSymTable, const char *key){
     return NULL;
 }
 
-// Hide function
-void SymTable_hide(SymTable_T oSymTable){
-    List_T temp;
-    size_t i;
-    assert(oSymTable);
+/* ================================================= */
 
-    for(i = 0; i < oSymTable->max_size; i++){
-        temp = oSymTable->buckets[i];
-        while(temp){
-            temp->val->isActive = 0;
-            temp = temp->next;
-        }
-    }
-
-    return;
-}
-
-// Map function
 void SymTable_map(SymTable_T oSymTable, void (*pfApply)(const char *key, SymbolTableEntry* value, void *pvExtra), void *pvExtra){
     List_T temp;
     size_t i;
@@ -241,7 +245,8 @@ void SymTable_map(SymTable_T oSymTable, void (*pfApply)(const char *key, SymbolT
     }
 }
 
-// Next and prev functions
+/* ================================================= */
+
 SymTable_T SymTable_next(SymTable_T oSymTable){
     assert(oSymTable);
     if(!oSymTable->next){
@@ -252,6 +257,7 @@ SymTable_T SymTable_next(SymTable_T oSymTable){
     return oSymTable->next;
 }
 
+/* ================================================= */
 
 SymTable_T SymTable_prev(SymTable_T oSymTable){
     assert(oSymTable);
@@ -260,43 +266,43 @@ SymTable_T SymTable_prev(SymTable_T oSymTable){
     return oSymTable->prev;
 }
 
+/* ================================================= */
 
-// Print function
-void SymTable_print(SymTable_T oSymTable) {
+void SymTable_print(SymTable_T oSymTable){
     List_T temp;
     size_t i;
     unsigned int scope = 0;
-    
-    if (!oSymTable) return;
+    if(!oSymTable) return;
 
-    while (oSymTable) {
+    while(oSymTable){
         printf("------------     Scope #%d     ------------\n", scope++);
-        for (i = 0; i < oSymTable->max_size; i++) {
+        for(i = 0; i < oSymTable->max_size; i++){
             temp = oSymTable->buckets[i];
-            while (temp) {
+            while(temp){
                 int line = 0;
                 int scope = 0;
-                switch (temp->val->type) {
+                switch(temp->val->type) {
                     case VAR_GLOBAL:
                     case VAR_LOCAL:
                     case VAR_FORMAL:
-                        line = temp->val->value.varVal->line;
-                        scope = temp->val->value.varVal->scope;
+                        line = temp->val->line; 
+                        scope =  temp->val->scope;
                         break;
                     case USERFUNC:
                     case LIBFUNC:
-                        line = temp->val->value.funcVal->line;
-                        scope = temp->val->value.funcVal->scope;
+                        line = temp->val->line;
+                        scope =  temp->val->scope;
                         break;
                     default:
                         assert(0);
                 }
-                printf("%-20s | %-15s | Line: %-5d | Scope: %d\n", 
-                       temp->key, enum_to_s[temp->val->type], line, scope);
+                printf("\"%s\" [%s] (line: %d) (scope %d)\n", temp->key, enum_to_s[temp->val->type], line, scope);
                 temp = temp->next;
             }
         }
         oSymTable = oSymTable->next;
         printf("\n\n");
     }
+
+    return;
 }

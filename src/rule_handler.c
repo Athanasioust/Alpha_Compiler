@@ -1,261 +1,778 @@
 #include "../include/rule_handler.h"
 #include "../include/symtable.h"
+#include "../include/structs.h"
+#include "../include/stack.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#ifdef DEBUG
+#	define DPRINT(...) fprintf(stderr, __VA_ARGS__)
+#else
+#	define DPRINT(...)
+#endif
 
 
-// Function to create a new function
-Function* makeFunc(char* key, int lineno, int scope){
-    Function* temp = malloc(sizeof(struct Function));
-    temp->name = malloc(sizeof(key) + 1);
-    strcpy(temp->name, key);
-    temp->line = lineno;
-    temp->scope = scope;
+Expr* emitIfTableItem(Expr* e);
 
-	return temp;
+int isVar(SymbolTableEntry* temp){
+    return temp->type == VAR_FORMAL || temp->type == VAR_GLOBAL || temp->type == VAR_LOCAL;
 }
-// Function to create a new library function
-void libFunc(SymTable_T head, char* name){
-    SymbolTableEntry* temp_entry = malloc(sizeof(struct SymbolTableEntry));
-    Function* temp = makeFunc(name, 0, 0);
 
-    temp_entry->isActive = 1;
+Expr* makeExpr(SymbolTableEntry* sym){
+    assert(sym);
+    Expr* e = (Expr*) malloc(sizeof(Expr));
+    memset(e, 0, sizeof(Expr));
+    e->next = (Expr*) 0;
+    e->sym = sym;
+
+    if(isVar(sym))                   e->type = var_e;
+    else if(sym->type == USERFUNC)   e->type = programfunc_e;
+    else if(sym->type == LIBFUNC)    e->type = libraryfunc_e;
+    else                             assert(0);
+
+    return e;
+}
+
+
+void libFunc(SymTable_T head, char* name){
+    SymbolTableEntry* temp_entry = makeSymbol(name, 0, 0);
     temp_entry->type = LIBFUNC;
-    temp_entry->value.funcVal = temp;
     
     SymTable_insert(head, name, temp_entry);
 }
-// Function to check if a variable is legal
-int LegalCheck(int scope, int func_scope){
+
+int isLegal(int scope, int func_scope){
     return (scope == 0 || scope > func_scope);
 }
-// Function to check if a variable is a variable
-int VarCheck(SymbolTableEntry* temp){
-    return temp->type == VAR_FORMAL || temp->type == VAR_GLOBAL || temp->type == VAR_LOCAL;
-}
-// Function to create a new variable
-Variable* makeVar(char* key, int lineno, int scope){
-    Variable* temp = malloc(sizeof(struct Variable));
-    temp->name = malloc(sizeof(key) + 1);
-    strcpy(temp->name, key);
-    temp->line = lineno;
-    temp->scope = scope;
 
-    return temp;
-}
-// Function to count the digits of a number
-int countDigits(int num) {
-    if (num == 0)
-        return 1;
-
+int countDigits(int num){
     int count = 0;
-    while (num != 0) {
+    while(num){
         num /= 10;
         count++;
     }
+
     return count;
 }
 
-// Function to handle a function call (term to lvalue dec) FIXED
-void HANDLE_TERM_TO_LVALUE_DEC(SymbolTableEntry* entry, int func_scope){
+// =======================================================================================
 
-    if (!entry || LegalCheck(entry->value.varVal->scope, func_scope)) return;
-
-    if(!VarCheck(entry)){
-        fprintf(stderr, "The function '%s' cannot be referenced before the decrement operator.\n", entry->value.funcVal->name);
-        return;
-    }
-    
-    fprintf(stderr, "The variable '%s' in scope %d cannot be accessed because of a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
-
-    return;
-}
-// Function to handle a function call (prim to lvalue) FIXED
-void HANDLE_PRIM_TO_LVALUE(SymbolTableEntry* entry, int func_scope){
-    if (!entry || !VarCheck(entry) || LegalCheck(entry->value.varVal->scope, func_scope)) return;
-    fprintf(stderr, "The variable '%s' in scope %d is not accessible due to a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
-    return;
-}
-
-// Function to handle a function call (lvalue to global ident) FIXED
-SymbolTableEntry* HANDLE_LVALUE_TO_GLOBAL_IDENT(SymTable_T global, char* key, int lineno, int scope){
+Expr* HANDLE_LVALUE_TO_IDENT(char* key, int lineno){
     SymbolTableEntry* temp;
+    SymTable_T table = current_table;
 
-    if((temp = SymTable_lookup_here(global, key))) return temp;
+    if((temp = SymTable_lookup(table, key))) return makeExpr(temp);
 
-    fprintf(stderr, "The name '%s' was referenced as '::%s', but it was not found in the global scope.\n", key, key);
-
-    return NULL;
-}
-
-// Function to handle a function call (assignexpr to lvalue assign expression) FIXED
-void HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION(SymbolTableEntry* entry, int func_scope){
-
-    if (!entry || LegalCheck(entry->value.varVal->scope, func_scope)) return;
-
-    if(!VarCheck(entry)){
-        fprintf(stderr, "The function '%s' cannot be assigned to as an lvalue.\n", entry->value.funcVal->name);
-        return;
-    }
-
-fprintf(stderr, "The variable '%s' in scope %d is inaccessible due to a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
-
-    return;
-}
-
-// Function to handle a function call (lvalue to local ident)
-SymbolTableEntry* HANDLE_LVALUE_TO_LOCAL_IDENT(SymTable_T table, SymTable_T global, char* key, int lineno, int scope){
-
-    SymbolTableEntry* temp;
-    
-    if((temp = SymTable_lookup_here(table, key))) return temp;
-
-    if((temp = SymTable_lookup_here(global, key)) && temp->type == LIBFUNC){
-        fprintf(stderr, "The library function '%s' cannot be shadowed by a local variable.\n", temp->value.funcVal->name);
-        return NULL;
-    }
-
-    temp = malloc(sizeof(struct SymbolTableEntry));
-    temp->isActive = 1;
+    temp = makeSymbol(key, lineno, scope);
     temp->type = (scope ? VAR_LOCAL : VAR_GLOBAL);
-    temp->value.varVal = makeVar(key, lineno, scope);
+    temp->space = currScopeSpace();
+    temp->offset = currScopeOffset();
+    incCurrScopeOffset();
 
-    return SymTable_insert(table, key, temp);
+    return makeExpr(SymTable_insert(table, key, temp));
 }
-// Function to handle a function call (idlist ident)
-char* HANDLE_IDLIST_IDENT(SymTable_T table, char* key, int lineno, int scope){
+
+Expr* HANDLE_LVALUE_TO_LOCAL_IDENT(char* key, int lineno){
     SymbolTableEntry* temp;
+    SymTable_T table = current_table;
+
+    if((temp = SymTable_lookup_here(table, key))) return makeExpr(temp);
+
+    if((temp = SymTable_lookup_here(head, key)) && temp->type == LIBFUNC){
+        fprintf(stderr, "Line %d: Library function %s can't be shadowed by local variable\n", lineno, temp->name);
+        exit(1);
+    }
+
+    temp = makeSymbol(key, lineno, scope);
+    temp->type = (scope ? VAR_LOCAL : VAR_GLOBAL);
+    temp->space = currScopeSpace();
+    temp->offset = currScopeOffset();
+    incCurrScopeOffset();
+
+
+    return  makeExpr(SymTable_insert(table, key, temp));
+}
+
+Expr* HANDLE_LVALUE_TO_GLOBAL_IDENT(char* key, int lineno){
+    SymbolTableEntry* temp;
+
+    if((temp = SymTable_lookup_here(head, key))) return makeExpr(temp);
+
+    fprintf(stderr, "Line %d: Name %s was not found in the global scope but was referenced as ::%s\n", lineno, key ,key);
+    exit(1);
+}
+
+// =======================================================================================
+
+Expr* HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION(Expr* lvalue, Expr* expression, int lineno){
+    if(!isLegal(lvalue->sym->scope, stack_top(functionScopeStack))){
+        fprintf(stderr, "Variable %s at scope %d is inaccessible due to function declaration at scope %d\n", lvalue->sym->name, lvalue->sym->scope, stack_top(functionScopeStack));
+        exit(1);
+    }
+
+    Expr* temp;
+
+    if(lvalue->type == tableitem_e){
+        emit(
+            tablesetelem,
+            lvalue,
+            lvalue->index,
+            expression,
+            0,
+            lineno
+        );
+        temp = emitIfTableItem(lvalue);
+        temp->type = assignexpr_e;
+    } else {
+        emit(
+            assign,
+            expression,
+            NULL,
+            lvalue,
+            0,
+            lineno
+        );
+        temp = newExpr(assignexpr_e);
+        temp->sym = newTemp();
+        emit(
+            assign,
+            lvalue,
+            NULL,
+            temp,
+            0,
+            lineno
+        );
+    }
+    return temp;   
+}
+
+// =======================================================================================
+
+char* HANDLE_IDLIST_IDENT(char* key, int lineno){
+    SymbolTableEntry* temp;
+    SymTable_T table = current_table;
 
     if((temp = SymTable_lookup_here(table, key))){
-        fprintf(stderr, "Formal argument %s already defined in the same id_list.\n", key);
-        return NULL;
+        fprintf(stderr, "Line %d: Formal argument %s already defined in the same id_list\n", lineno, key);
+        exit(1);
     }
 
-    if((temp = SymTable_lookup(table, key))){
-        if(!VarCheck(temp)){
-            fprintf(stderr, "Function with name %s is active, can't initialize formal argument with same name,function already exists.\n", key);
-            return NULL;
+    if((temp = SymTable_lookup_here(table, key))){
+        if(!isVar(temp)){
+            fprintf(stderr, "Line %d: Function with name %s is active, can't initialize formal argument with same name\n", lineno, key);
+            exit(1);
         }
     }
 
-    temp = malloc(sizeof(struct SymbolTableEntry));
-    temp->isActive = 1;
+    temp = makeSymbol(key, lineno, scope);
     temp->type = VAR_FORMAL;
-
-    temp->value.varVal = makeVar(key, lineno, scope);
 
     SymTable_insert(table, key, temp);
 
-    return temp->value.varVal->name;
+    return temp->name;
 }
 
-// Function to handle a function call (function without name)
-char* HANDLE_FUNCTION_WITHOUT_NAME(SymTable_T table, int anon_count, int lineno, int scope){
+// =======================================================================================
+
+char* HANDLE_FUNCTION_WITH_NAME(char* key, int lineno){
     SymbolTableEntry* temp;
-    char* funcname = malloc(countDigits(anon_count) + 2);
-
-    sprintf(funcname, "$%d", anon_count);
-
-    temp = malloc(sizeof(struct SymbolTableEntry));
-    temp->isActive = 1;
-    temp->type = USERFUNC;
-
-    temp->value.funcVal = makeFunc(funcname, lineno, scope);
-
-    SymTable_insert(table, funcname, temp);
-
-	return temp->value.funcVal->name;
-}
-// Function to handle a function call (term to inc lvalue ) FIXED
-void HANDLE_TERM_TO_INC_LVALUE(SymbolTableEntry* entry, int func_scope){
-    if (!entry || LegalCheck(entry->value.varVal->scope, func_scope)) return;
-
-    if(!VarCheck(entry)){
-        fprintf(stderr, "The function '%s' cannot be referenced after the increment operator.\n", entry->value.funcVal->name);
-        return;
-    }
-
-fprintf(stderr, "The variable '%s' in scope %d is inaccessible because of a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
-
-    return;
-}
-// Function to handle a function call (term to lvalue inc) FIXED
-void HANDLE_TERM_TO_LVALUE_INC(SymbolTableEntry* entry, int func_scope){
-    if(!entry) return;
-
-    if(!VarCheck(entry)){
-        fprintf(stderr, "The function '%s' cannot be referenced before the increment operator.\n", entry->value.funcVal->name);
-        return;
-    }
-
-    if(LegalCheck(entry->value.varVal->scope, func_scope)) return;
-
-    fprintf(stderr, "The variable '%s' in scope %d is inaccessible because of a function declaration in scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
-
-    return;
-}
-
-// Function to handle a function call (term to dec lvalue) FIXED
-void HANDLE_TERM_TO_DEC_LVALUE(SymbolTableEntry* entry, int func_scope){
-    if(!entry) return;
-
-    if(!VarCheck(entry)){
-        fprintf(stderr, "The function %s cannot be referenced after the -- operator.\n", entry->value.funcVal->name);
-        return;
-    }
-
-    if(LegalCheck(entry->value.varVal->scope, func_scope)) return;
-
-    fprintf(stderr, "Variable %s at scope %d is inaccessible due to function declaration at scope %d.\n", entry->value.varVal->name, entry->value.varVal->scope, func_scope);
-
-    return;
-}
-// Function to handle a function call (function with name) FIXED
-char* HANDLE_FUNCTION_WITH_NAME(SymTable_T table, char* key, int lineno, int scope){
-    SymbolTableEntry* temp;
+    SymTable_T table = current_table;
 
     if((temp = SymTable_lookup(table, key))){
-
-
-        if(temp->value.funcVal->scope == scope){
-            fprintf(stderr, "Cannot redefine the function %s with the same name.\n", key);
-            return NULL;
+        if(isVar(temp)){
+            fprintf(stderr, "Line %d: Can't redefine variable %s as function\n", lineno, key);
+            exit(1);
         }
-        
+
         if(temp->type == LIBFUNC){
-            fprintf(stderr, "Cannot overwrite library function %s.\n", key);
-            return NULL;
+            fprintf(stderr, "Line %d: Can't overshadow library function %s\n", lineno, key);
+            exit(1);
         }
 
-        if(VarCheck(temp)){
-        fprintf(stderr, "Cannot redefine %s as a function because it is already a variable.\n", key);
-            return NULL;
+        if(temp->scope == scope){
+            fprintf(stderr, "Line %d: Can't redefine the same function %s\n", lineno, key);
+            exit(1);
         }
     } 
 
-    temp = malloc(sizeof(struct SymbolTableEntry));
+    temp = makeSymbol(key, lineno, scope);
     temp->type = USERFUNC;
-    temp->isActive = 1;
-    
-    temp->value.funcVal = makeFunc(key, lineno, scope);
 
     SymTable_insert(table, key, temp);
 
-	return temp->value.funcVal->name;
+	return temp->name;
 }
 
-// Function to handle a function call (lvalue to ident) NO CHANGE
-SymbolTableEntry* HANDLE_LVALUE_TO_IDENT(SymTable_T table, char* key, int lineno, int scope){
+char* HANDLE_FUNCTION_WITHOUT_NAME(int lineno){
     SymbolTableEntry* temp;
+    SymTable_T table = current_table;
+    char* funcname = malloc(countDigits(anon_count) + 2);
 
-    if((temp = SymTable_lookup(table, key))) return temp;
+    sprintf(funcname, "$%d", anon_count++);
 
-    temp = malloc(sizeof(struct SymbolTableEntry));
-    temp->isActive = 1;
-    temp->type = (scope ? VAR_LOCAL : VAR_GLOBAL);
+    temp = makeSymbol(funcname, lineno, scope);
+    temp->type = USERFUNC;
 
-    temp->value.varVal = makeVar(key, lineno, scope);
+    SymTable_insert(table, funcname, temp);
 
-    return SymTable_insert(table, key, temp);
+	return temp->name;
+}
+
+SymbolTableEntry* HANDLE_FUNCPREFIX(char* func_name, int lineno){
+    SymbolTableEntry* temp = SymTable_lookup(current_table ,func_name);
+    Expr* arg = newExpr(programfunc_e);
+
+    temp->iadress = nextQuadLabel();
+
+    arg->sym = temp;
+    arg->strConst = temp->name;
+
+    emit(funcstart, NULL, NULL, arg, 0, lineno);
+    scopeOffsetStack = stack_push(scopeOffsetStack, currScopeOffset());
+    enterScopeSpace();
+    resetFormalArgsOffset();
+
+    return temp;
+}
+
+SymbolTableEntry* HANDLE_FUNCDEF(SymbolTableEntry* funcprefix, unsigned funcbody, int lineno){
+    Expr* arg = newExpr(programfunc_e);
+
+    arg->sym = funcprefix;
+    arg->strConst = funcprefix->name;
+
+    functionScopeStack = stack_pop(functionScopeStack);
+    exitScopeSpace();
+    funcprefix->totalLocals = funcbody;
+    scopeOffsetStack = stack_pop(scopeOffsetStack);
+    restoreCurrScopeOffset(stack_top(scopeOffsetStack));
+    emit(funcend, NULL, NULL, arg, 0, lineno);
+	return funcprefix;
+}
+
+// =======================================================================================
+
+Expr* HANDLE_TERM_TO_INC_LVALUE(Expr* lvalue, int lineno){
+    if(!lvalue) return (Expr*) 0;
+
+    if(!isLegal(lvalue->sym->scope, stack_top(functionScopeStack))){
+        fprintf(stderr, "Line %d: Variable %s at scope %d is inaccessible due to function declaration at scope %d\n", lineno, lvalue->sym->name, lvalue->sym->scope, stack_top(functionScopeStack));
+        exit(1);
+    }
+
+    checkArith(lvalue, "INC LVALUE");
+    Expr* temp = newExpr(var_e);
+    temp->sym = newTemp();
+    if(lvalue->type == tableitem_e){
+        Expr* val = emitIfTableItem(lvalue);
+        emit(assign, val, NULL, temp, 0, lineno);
+        emit(add, val, newExprConstNum(1), val, 0, lineno);
+        emit(tablesetelem, lvalue, lvalue->index, val, 0, lineno);
+    } else {
+        emit(add, lvalue, newExprConstNum(1), lvalue, 0, lineno);
+        emit(assign, lvalue, NULL, temp, 0, lineno);
+    }
+
+    return temp;
+}
+
+Expr* HANDLE_TERM_TO_LVALUE_INC(Expr* lvalue, int lineno){
+    if(!lvalue) return (Expr*) 0;
+
+    if(!isLegal(lvalue->sym->scope, stack_top(functionScopeStack))){
+        fprintf(stderr, "Line %d: Variable %s at scope %d is inaccessible due to function declaration at scope %d\n", lineno, lvalue->sym->name, lvalue->sym->scope, stack_top(functionScopeStack));
+        exit(1);
+    }
+
+    checkArith(lvalue, "LVALUE INC");
+    Expr* temp;
+    if(lvalue->type == tableitem_e){
+        temp = emitIfTableItem(lvalue);
+        emit(add, temp, newExprConstNum(1), temp, 0, lineno);
+        emit(tablesetelem, lvalue, lvalue->index, temp, 0, lineno);
+    } else {
+        emit(add, lvalue, newExprConstNum(1), lvalue, 0, lineno);
+        temp = newExpr(arithmexpr_e);
+        temp->sym = newTemp();
+        emit(assign, lvalue, NULL, temp, 0, lineno);
+    }
+
+    return temp;
+}
+
+Expr* HANDLE_TERM_TO_DEC_LVALUE(Expr* lvalue, int lineno){
+    if(!lvalue) return (Expr*) 0;
+
+    if(!isLegal(lvalue->sym->scope, stack_top(functionScopeStack))){
+        fprintf(stderr, "Line %d: Variable %s at scope %d is inaccessible due to function declaration at scope %d\n", lineno, lvalue->sym->name, lvalue->sym->scope, stack_top(functionScopeStack));
+        exit(1);
+    }
+
+    checkArith(lvalue, "DEC LVALUE");   
+    Expr* temp = newExpr(var_e);
+    temp->sym = newTemp();
+    if(lvalue->type == tableitem_e){
+        Expr* val = emitIfTableItem(lvalue);
+        emit(assign, val, NULL, temp, 0, lineno);
+        emit(sub, val, newExprConstNum(1), val, 0, lineno);
+        emit(tablesetelem, lvalue, lvalue->index, val, 0, lineno);
+    } else {
+        emit(sub, lvalue, newExprConstNum(1), lvalue, 0, lineno);
+        emit(assign, lvalue, NULL, temp, 0, lineno);
+    }
+
+    return temp;
+}
+
+Expr* HANDLE_TERM_TO_LVALUE_DEC(Expr* lvalue, int lineno){
+    if(!lvalue) return (Expr*) 0;
+
+    if(!isLegal(lvalue->sym->scope, stack_top(functionScopeStack))){
+        fprintf(stderr, "Line %d: Variable %s at scope %d is inaccessible due to function declaration at scope %d\n", lineno, lvalue->sym->name, lvalue->sym->scope, stack_top(functionScopeStack));
+        exit(1);
+    }
+
+    checkArith(lvalue, "LVALUE DEC");
+    Expr* temp;
+    if(lvalue->type == tableitem_e){
+        temp = emitIfTableItem(lvalue);
+        emit(sub, temp, newExprConstNum(1), temp, 0, lineno);
+        emit(tablesetelem, lvalue, lvalue->index, temp, 0, lineno);
+    } else {
+        emit(sub, lvalue, newExprConstNum(1), lvalue, 0, lineno);
+        temp = newExpr(arithmexpr_e);
+        temp->sym = newTemp();
+        emit(assign, lvalue, NULL, temp, 0, lineno);
+    }
+
+    return temp;
+}
+
+Expr* HANDLE_TERM_TO_UMINUS_EXPR(Expr* expression){
+    checkArith(expression, "Uminus expression");
+    Expr* temp = newExpr(arithmexpr_e);
+    temp->sym = newTemp();
+    emit(uminus, expression, NULL, temp, 0, 0);
+    return temp;
+}
+
+void notBoolExpr(Expr* expression){
+    expression->trueList = newList(nextQuadLabel());
+    expression->falseList = newList(nextQuadLabel() + 1);
+    emit(if_eq, expression, newExprConstBool(1), NULL, 0, 0);
+    emit(jump, NULL, NULL, NULL, 0, 0);
+}
+
+Expr* HANDLE_TERM_TO_NOT_EXPR(Expr* expression)
+{
+    Expr* temp = newExpr(boolexpr_e);
+    temp->sym = newTemp();
+
+    if (expression->type == var_e ||  expression->type == assignexpr_e) notBoolExpr(expression);
+    temp->trueList = expression->falseList;
+    temp->falseList = expression->trueList;
+
+    return temp;
+}
+
+Expr* HANDLE_PRIM_TO_LVALUE(Expr* lvalue, int lineno){
+    return emitIfTableItem(lvalue);
+}
+
+// =======================================================================================
+
+Expr* emitIfTableItem(Expr* e){
+    if(e->type != tableitem_e) return e;
+    else{
+        Expr* result = newExpr(var_e);
+        result->sym = newTemp();
+        emit(
+            tablegetelem,
+            e,
+            e->index,
+            result,
+            0,
+            0
+        );
+        return result;
+    }
+}
+
+Expr* memberItem (Expr* lv, char* name) {
+    lv = emitIfTableItem(lv); 
+    Expr* ti = newExpr(tableitem_e);
+    ti->sym = lv->sym;
+    ti->index = newExprConstString(name);
+    return ti;
+}
+
+Expr* HANDLE_MEMBER_TO_LVALUE_DOT_IDENT(Expr* lvalue, char* name){
+    return memberItem(lvalue, name);
+}
+
+Expr* HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR(Expr* lvalue, Expr* expression){
+    lvalue = emitIfTableItem(lvalue);
+    Expr* temp = newExpr(tableitem_e);
+    temp->sym = lvalue->sym;
+    temp->index = expression->index;
+    return temp;
+}
+
+// =======================================================================================
+
+Expr* HANDLE_PRIM_TO_FUNCDEF(SymbolTableEntry* funcdef){
+    Expr* temp = newExpr(programfunc_e);
+    temp->sym = funcdef;
+    return temp;
+}
+
+// =======================================================================================
+
+Expr* makeCall (Expr* lvalue, Expr* reversed_elist) {
+    Expr* func = emitIfTableItem(lvalue);
+    while (reversed_elist) {
+        emit(param, reversed_elist, NULL, NULL, 0, 0);
+        reversed_elist = reversed_elist->next;
+    }
+
+    emit(call, func, NULL, NULL, 0, 0);
+    Expr* result = newExpr(var_e);
+    result->sym = newTemp();
+    emit(getretval, NULL, NULL, result, 0, 0);
+    return result;
+}
+
+
+Expr* HANDLE_CALL_ELIST(Expr* call, Expr* elist){
+    return makeCall(call, elist);
+}
+
+Expr* HANDLE_CALL_FUNCDEF_ELIST(SymbolTableEntry* funcdef, Expr* elist){
+    Expr* func = newExpr(programfunc_e);
+    func->sym = funcdef;
+    return makeCall(func, elist);
+}
+
+Expr* HANDLE_CALL_LVALUE_SUFFIX(Expr* lvalue, Call* callsuffix){
+    lvalue = emitIfTableItem(lvalue);
+    if(callsuffix->method){
+        Expr* t = lvalue;
+        lvalue = emitIfTableItem(memberItem(t, callsuffix->name));
+        if(callsuffix->elist) callsuffix->elist->next = t;
+        else callsuffix->elist = t;
+    }
+    return makeCall(lvalue, callsuffix->elist);
+}
+
+Call* HANDLE_NORMCALL(Expr* elist){
+    Call* temp = malloc(sizeof(Call));
+
+    temp->elist = elist;
+    temp->method = 0;
+    temp->name  = (char*) 0;
+
+    return temp;
+}
+
+Call* HANDLE_METHODCALL(char* name, Expr* elist){
+    Call* temp = malloc(sizeof(Call));
+
+    temp->elist = elist;
+    temp->method = 1;
+    temp->name = name;
+
+    return temp; 
+}
+
+// =======================================================================================
+
+Expr* HANDLE_INDEXELEM(Expr* index, Expr* value){
+    value->index = index;
+    return value;
+}
+
+Expr* HANDLE_ELIST_ADD(Expr* expression, Expr* elist){
+    expression->next = elist;
+    return expression;
+}
+
+Expr* HANDLE_INDEXED_ADD(Expr* indexedelem, Expr* indexed){
+    indexed->next = indexedelem;
+    return indexed;                 /* SAME AS ABOVE !!! */
+}
+
+// =======================================================================================
+
+
+Expr* HANDLE_OBJECTDEF_TO_ELIST(Expr* elist){
+    Expr* t = newExpr(newtable_e);
+    t->sym = newTemp();
+    emit(tablecreate, t, NULL, NULL, 0, 0);
+    for(int i = 0; elist; elist = elist->next){
+        emit(tablesetelem, t, newExprConstNum(i++), elist, 0, 0);
+    }
+
+    return t;
+}
+
+Expr* HANDLE_OBJECTDEF_TO_INDEXED(Expr* indexed){
+    Expr* t = newExpr(newtable_e);
+    t->sym = newTemp();
+    emit(tablecreate, t, NULL, NULL, 0, 0);
+    for(; indexed; indexed = indexed->next){
+        emit(tablesetelem, t, indexed->index, indexed, 0, 0);
+    }
+
+    return t;
+}
+
+// =======================================================================================
+int check_arith_eligible(Expr* temp){
+    switch(temp->type){
+        case programfunc_e:
+        case libraryfunc_e:
+        case boolexpr_e:
+        case newtable_e:
+        case constbool_e:
+        case conststring_e:
+        case nil_e:
+            return -1;
+        case constnum_e:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+int check_bool_eligible(Expr* temp){
+    switch(temp->type){
+        case programfunc_e:
+        case libraryfunc_e:
+        case newtable_e:
+        case constbool_e:
+        case conststring_e:
+        case constnum_e:
+        case nil_e:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+Expr* HANDLE_ARITH_OP(iopcode op, Expr* expr1, Expr* expr2){
+    Expr* temp;
+
+    if(check_arith_eligible(expr1) == 1 && check_arith_eligible(expr2) == 1){
+        double res;
+        switch(op){
+            case add:   res = expr1->numConst + expr2->numConst; break;
+            case sub:   res = expr1->numConst - expr2->numConst; break;
+            case mul:   res = expr1->numConst * expr2->numConst; break;
+            case mydiv: res = expr1->numConst / expr2->numConst; break;
+            case mod:   res = (long long)expr1->numConst % (long long)expr2->numConst; break;
+            default: assert(0);
+        }
+        return newExprConstNum(res);
+    }
+
+    if(check_arith_eligible(expr1) == -1) {
+        fprintf(stderr, "Expression 1 in line %d has type %s which is not allowed in arithmetic expression\n", 0, str_iopcodeName[expr1->type]);
+        exit(1);
+    }
+
+    if(check_arith_eligible(expr2) == -1) {
+        fprintf(stderr, "Expression 2 in line %d has type %s which is not allowed in arithmetic expression\n",  0, str_iopcodeName[expr2->type]);
+        exit(1);
+    }
+
+    temp = newExpr(arithmexpr_e);
+    temp->sym = newTemp();
+    emit(op, expr1, expr2, temp, 0, 0);
+
+    return temp;
+}
+
+Expr* HANDLE_REL_OP(iopcode op, Expr* expr1, Expr* expr2){
+    Expr* temp;
+
+    if(check_arith_eligible(expr1) == 1  && check_arith_eligible(expr2) == 1){
+        int res;
+        if(op == if_greater)		res = (expr1->numConst > expr2->numConst);
+        else if(op == if_geatereq)	res = (expr1->numConst >= expr2->numConst);
+        else if(op == if_less)		res = (expr1->numConst < expr2->numConst);
+        else if(op == if_lesseq)	res = (expr1->numConst <= expr2->numConst);
+        else if(op == if_eq)		res = (expr1->numConst == expr2->numConst);
+        else if(op == if_noteq)		res = (expr1->numConst != expr2->numConst);
+
+        return newExprConstBool(res);
+    }
+
+    if((op == if_eq || op == if_noteq)){
+        int res;
+
+        if((expr1->type == nil_e && expr2->type == tableitem_e) || (expr1->type == tableitem_e && expr2->type == nil_e)){
+            switch (op) {
+                case if_eq:     return newExprConstBool(0);
+                case if_noteq:  return newExprConstBool(1);
+                default: ;
+            }
+        }
+
+        if(expr1->type == expr2->type){
+            switch (expr1->type) {
+                case constnum_e:        res = expr2->numConst == expr1->numConst;               break;
+                case conststring_e:     res = strcmp(expr2->strConst, expr1->strConst) == 0;    break;
+                case newtable_e:        res = 1;                                                break;
+                case programfunc_e:     res = strcmp(expr2->sym->name, expr1->sym->name) == 0;  break;
+                case libraryfunc_e:     res = strcmp(expr2->sym->name, expr1->sym->name) == 0;  break;
+                case constbool_e:       res = expr2->boolConst == expr1->boolConst;             break;
+                default: goto QUIT;
+            }
+
+            return (op == if_eq ? newExprConstBool(res) : newExprConstBool(!res));
+        }
+    }
+
+    QUIT:
+
+
+    if(check_arith_eligible(expr1) == -1 && op != if_eq && op != if_noteq) {
+        fprintf(stderr, "Expression 1 has type %s which is not allowed in relation expression\n", str_iopcodeName[expr1->type]);
+        exit(1);
+    }
+
+    if(check_arith_eligible(expr2) == -1 && op != if_eq && op != if_noteq) {
+        fprintf(stderr, "Expression 2 has type %s which is not allowed in relation expression\n", str_iopcodeName[expr2->type]);
+        exit(1);
+    }
+
+    temp = newExpr(boolexpr_e);
+    temp->sym = newTemp();
+	temp->trueList = newList(nextQuadLabel());
+	temp->falseList = newList(nextQuadLabel()+1);
+
+    emit(op, expr1, expr2, NULL, 0, 0);
+    emit(jump, NULL, NULL, NULL, 0, 0);
+
+    return temp;
+}
+
+Expr* HANDLE_BOOL_OP(iopcode op, Expr* expr1, Expr* expr2, unsigned M){
+    Expr* temp;
+    int isVar = 0;
+
+	if (expr1->type == var_e ||  expr1->type == assignexpr_e) {
+        notBoolExpr(expr1);
+        isVar = 1;
+	}
+
+    if (expr2->type == var_e || expr2->type == assignexpr_e){
+        notBoolExpr(expr2);
+        isVar = 1;
+    }
+
+    patchList((op == and ? expr1->trueList : expr1->falseList), M);
+
+	if(!isVar && check_bool_eligible(expr1) && check_bool_eligible(expr2)){
+		switch (op) {
+			case and:	temp = newExprConstBool(boolVal(expr1) && boolVal(expr2)); break;
+			case or:	temp = newExprConstBool(boolVal(expr1) || boolVal(expr2)); break;
+			default:	assert(0);
+		}
+	} else {
+        temp = newExpr(boolexpr_e);
+        temp->sym = newTemp();
+    }
+
+	switch (op) {
+		case and:
+			temp->trueList = expr2->trueList;
+			temp->falseList = mergeList(expr1->falseList, expr2->falseList);
+			break;
+		case or:
+			temp->falseList = expr2->falseList;
+			temp->trueList = mergeList(expr1->trueList, expr2->trueList);
+			break;
+		default:	assert(0);
+	}
+
+    return temp;
+}
+
+// =======================================================================================
+
+unsigned HANDLE_IFPREFIX(Expr* expression){
+    unsigned temp;
+
+    emit(if_eq, expression, newExprConstBool(1), NULL, nextQuadLabel() + 2, 0);
+    temp = nextQuadLabel();
+    emit(jump, NULL, NULL, NULL, 0, 0);
+
+    return temp;
+}
+
+unsigned HANDLE_ELSEPREFIX(int lineno){
+    unsigned temp = nextQuadLabel();
+    
+    emit(jump, NULL, NULL, 0, 0, lineno);
+
+    return temp;
+}
+
+unsigned HANDLE_WHILEARGS(Expr* expression){
+    unsigned result;
+    emit(if_eq, expression, newExprConstBool(1), NULL, nextQuadLabel() + 2, 0);
+    result = nextQuadLabel();
+    emit(jump, NULL, NULL, NULL, 0, 0);
+	return result;
+}
+
+void HANDLE_WHILE(unsigned start, unsigned args, stmt_t *stmt){
+    emit(jump, NULL, NULL, NULL, start, 0);
+    patchLabel(args, nextQuadLabel());
+
+    if(stmt){
+        patchList(stmt->breakList, nextQuadLabel());
+        patchList(stmt->contList, start);
+    }
+}
+
+ForLoopPrefix* HANDLE_FORPREFIX(unsigned M, Expr* expression){
+    ForLoopPrefix* temp = malloc(sizeof(ForLoopPrefix));
+    temp->test = M;
+    temp->enter = nextQuadLabel();
+    emit(if_eq, expression, newExprConstBool(1), 0, 0, 0);
+
+    return temp;
+}
+
+void HANDLE_FORSTMT(ForLoopPrefix* prefix, unsigned N1, unsigned N2, unsigned N3, stmt_t* stmt){
+    patchLabel(prefix->enter, N2 + 1);
+    patchLabel(N1, nextQuadLabel());
+    patchLabel(N2, prefix->test);
+    patchLabel(N3, N1 + 1);
+
+    if(stmt){
+	    patchList(stmt->breakList, nextQuadLabel());
+	    patchList(stmt->contList, N1 + 1);
+    }
+}
+
+stmt_t* HANDLE_BREAK(void) {
+	stmt_t *temp = malloc(sizeof(stmt_t));
+
+	make_stmt(temp);
+	temp->breakList = newList(nextQuadLabel());
+	emit(jump, NULL, NULL, NULL, 0, 0);
+	return temp;
+}
+
+stmt_t* HANDLE_CONTINUE(void) {
+	stmt_t *temp = malloc(sizeof(stmt_t));
+
+	make_stmt(temp);
+	temp->contList = newList(nextQuadLabel());
+	emit(jump, NULL, NULL, NULL, 0, 0);
+	return temp;
 }
