@@ -11,6 +11,7 @@ quad*		quads = (void*)0; // quad vector
 unsigned	total = 1;
 unsigned	currQuad = 1;
 
+// Expand the quad vector
 void expand (void) {
     assert(total == currQuad);
     quad *p = malloc(NEW_SIZE);
@@ -22,6 +23,7 @@ void expand (void) {
     total += EXPAND_SIZE;
 }
 
+// Emit a quad
 void emit (
         iopcode        op,
         Expr*        arg1,
@@ -53,6 +55,7 @@ unsigned tempCounter = 0;
 unsigned loopCounter = 0;
 unsigned funcCounter = 0;
 
+// makes a bool statement
 void makeBoolStmt(Expr* e){
     if(e->type == boolexpr_e){
         patchList(e->trueList, nextQuadLabel());
@@ -63,6 +66,7 @@ void makeBoolStmt(Expr* e){
     }
 }
 
+// Return the current scope space
 ScopeSpace currScopeSpace(void){
     if(scopeSpaceCounter == 1){
         return programvar;
@@ -75,6 +79,7 @@ ScopeSpace currScopeSpace(void){
     return functionlocal;
 }
 
+// Return the current scope offset
 unsigned currScopeOffset (void) { 
     switch (currScopeSpace ()) {
         case programvar: 
@@ -88,6 +93,7 @@ unsigned currScopeOffset (void) {
     }
 }
 
+// Increase the current scope offset
 void incCurrScopeOffset(void){ 
     switch (currScopeSpace()) {
         case programvar: 
@@ -104,23 +110,31 @@ void incCurrScopeOffset(void){
     }
 }
 
-void enterScopeSpace (void){
-    ++scopeSpaceCounter;
-}
-
+// Exit the current scope space
 void exitScopeSpace (void){ 
     assert(scopeSpaceCounter>1); 
     --scopeSpaceCounter; 
 }
 
+// Enter a new scope space
+void enterScopeSpace (void){
+    ++scopeSpaceCounter;
+}
+
+// Reset the formal arguments offset
 void resetFormalArgsOffset(void){
     formalArgOffset = 0;
 }
 
+// Reset the program variables offset
 void resetFunctionLocalOffset(void){
     functionLocalOffset = 0;
 }
 
+// Reset the temp counter
+void resetTemp() {tempCounter = 0;}
+
+// Restore the current scope offset
 void restoreCurrScopeOffset(unsigned n){
     switch(currScopeSpace()){
         case programvar:    programVarOffset = n; break;
@@ -130,15 +144,18 @@ void restoreCurrScopeOffset(unsigned n){
     }
 }
 
-unsigned nextQuadLabel(void){
-    return currQuad;
-}
-
+// set the label of a quad
 void patchLabel(unsigned quadNo, unsigned label){
     assert(quadNo < currQuad);
     quads[quadNo].label = label;
 }
 
+// Return the next quad label
+unsigned nextQuadLabel(void){
+    return currQuad;
+}
+
+// Return a name for a new temporary symbol
 char* newTempName(){
     int count = 0, num = tempCounter;
 	while (num) {
@@ -153,8 +170,7 @@ char* newTempName(){
     return tempName;
 }
 
-void resetTemp() {tempCounter = 0;}
-
+// Return a new temporary symbol
 SymbolTableEntry* newTemp(){
     char* name = newTempName();
     SymbolTableEntry* sym = SymTable_lookup(current_table, name);
@@ -168,6 +184,7 @@ SymbolTableEntry* newTemp(){
     return temp;
 }
 
+// Return a new expression
 Expr* newExpr(ExprType t){
     Expr* e = (Expr*) malloc(sizeof(Expr));
     memset(e, 0, sizeof(Expr));
@@ -175,24 +192,28 @@ Expr* newExpr(ExprType t){
     return e;
 }
 
+// Change the strConst of an expression
 Expr* newExprConstString(char* s){
     Expr* e = newExpr(conststring_e);
     e->strConst = strdup(s);
     return e;
 }
 
+// Change the numConst of an expression
 Expr* newExprConstNum(double i){
     Expr* e = newExpr(constnum_e);
     e->numConst = i;
     return e;
 }
 
+// Change the boolConst of an expression
 Expr* newExprConstBool(unsigned char boolean){
     Expr* e = newExpr(constbool_e);
     e->boolConst = !!boolean;
     return e;
 }
 
+// create a new table item expression
 SymbolTableEntry* makeSymbol(char* key, int lineno, int scope){
     SymbolTableEntry* temp = calloc(1, sizeof(SymbolTableEntry));
     temp->isActive = 1;
@@ -205,18 +226,21 @@ SymbolTableEntry* makeSymbol(char* key, int lineno, int scope){
     return temp;
 }
 
+// make a new statement
 void make_stmt(stmt_t *s) {
 	s->breakList = s->contList = 0;
 }
 
+
 int newList(int i ) {
-    if (currQuad == total) {
+    if (total == currQuad) {
         expand();
     }
 	quads[i].label = 0;
 	return i;
 }
 
+// merge two lists
 int mergeList(int l1, int l2) {
 	if(!l1) {
 		return l2;
@@ -234,7 +258,7 @@ int mergeList(int l1, int l2) {
 	}
 	return 0; // dummy return to avoid warning
 }
-
+// patch the labels of a list
 void patchList(int list, int label) {
 	while (list) {
 		int next = quads[list].label;
@@ -243,6 +267,7 @@ void patchList(int list, int label) {
 	}
 }
 
+// check if an expression is legal arithmetical
 void checkArith(Expr* e, const char* context){
     if (e->type == constbool_e ||
         e->type == conststring_e ||
@@ -254,6 +279,7 @@ void checkArith(Expr* e, const char* context){
     fprintf(stderr,"Illegal expr used in %s!", context);
 }
 
+// check if an expression is legal boolean
 int boolVal(Expr *e) {
     switch (e->type) {
         case constbool_e:
@@ -277,6 +303,7 @@ int boolVal(Expr *e) {
     }
 }
 
+// get the value of an expression as a string
 char* getStringValueQuad(Expr* e){
     switch(e->type){
         case conststring_e:
@@ -355,11 +382,12 @@ int isBranch(iopcode op) {
 	}
 	return 0;
 }
-
+// return the opcode name of a quad
 const char* iopcodeName(quad* q){
     return str_iopcodeName[q->op];
 }
 
+// print the quads
 void printQuads(void) {
     printf("Quads:\n");
 	char str_label[16] = {0};

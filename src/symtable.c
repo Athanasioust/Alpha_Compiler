@@ -13,7 +13,7 @@ SymTable_T head;
 SymTable_T current_table;
 
 //Enum to string
-char* enum_to_s[] = {
+char* enum_to_str[] = {
     "global variable",
     "local variable",
     "formal argument",
@@ -52,6 +52,19 @@ struct SymTable{
     struct SymTable* prev;
 };
 
+//Create a new hash table
+SymTable_T SymTable_new(void){
+    SymTable_T table = malloc(sizeof(struct SymTable));
+
+    table->length = 0;
+    table->max_size = MIN_SIZE;
+    table->buckets = calloc(table->max_size, sizeof(List_T));
+    table->next = NULL;
+    table->prev = NULL;
+
+    return table;
+}
+
 //Get the size of the hash table
 size_t get_size(size_t max_size){
 	int index = 0;
@@ -65,18 +78,6 @@ size_t get_size(size_t max_size){
     return sizes[(index <= 7 ? index : 7)];
 }
 
-//Create a new hash table
-SymTable_T SymTable_new(void){
-    SymTable_T table = malloc(sizeof(struct SymTable));
-
-    table->length = 0;
-    table->max_size = MIN_SIZE;
-    table->buckets = calloc(table->max_size, sizeof(List_T));
-    table->next = NULL;
-    table->prev = NULL;
-
-    return table;
-}
 
 
 //Free the hash table
@@ -217,6 +218,7 @@ SymbolTableEntry* SymTable_lookup(SymTable_T oSymTable, const char *key){
     return NULL;
 }
 
+//Lookup an active entry in the current hash table
 SymbolTableEntry* SymTable_lookup_here(SymTable_T oSymTable, const char *key){
     List_T temp;
     assert(oSymTable);
@@ -232,8 +234,9 @@ SymbolTableEntry* SymTable_lookup_here(SymTable_T oSymTable, const char *key){
     return NULL;
 }
 
-/* ================================================= */
 
+
+//Map the hash table
 void SymTable_map(SymTable_T oSymTable, void (*pfApply)(const char *key, SymbolTableEntry* value, void *pvExtra), void *pvExtra){
     List_T temp;
     size_t i;
@@ -249,8 +252,9 @@ void SymTable_map(SymTable_T oSymTable, void (*pfApply)(const char *key, SymbolT
     }
 }
 
-/* ================================================= */
 
+
+//Get the next hash table
 SymTable_T SymTable_next(SymTable_T oSymTable){
     assert(oSymTable);
     if(!oSymTable->next){
@@ -261,8 +265,8 @@ SymTable_T SymTable_next(SymTable_T oSymTable){
     return oSymTable->next;
 }
 
-/* ================================================= */
 
+//Get the previous hash table
 SymTable_T SymTable_prev(SymTable_T oSymTable){
     assert(oSymTable);
     assert(oSymTable->prev);
@@ -270,8 +274,8 @@ SymTable_T SymTable_prev(SymTable_T oSymTable){
     return oSymTable->prev;
 }
 
-/* ================================================= */
 
+//Print the hash table
 void SymTable_print(SymTable_T oSymTable){
     List_T temp;
     size_t i;
@@ -300,10 +304,11 @@ void SymTable_print(SymTable_T oSymTable){
                     default:
                         assert(0);
                 }
-                printf("\"%s\" [%s] (line: %d) (scope %d)\n", temp->key, enum_to_s[temp->val->type], line, scope);
+                printf("\"%s\" [%s] (line: %d) (scope %d)\n", temp->key, enum_to_str[temp->val->type], line, scope);
                 temp = temp->next;
             }
         }
+
         oSymTable = oSymTable->next;
         printf("\n\n");
     }

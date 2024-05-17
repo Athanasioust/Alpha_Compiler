@@ -65,7 +65,7 @@ int countDigits(int num){
     return count;
 }
 
-//done
+
 Expr* HANDLE_LVALUE_TO_IDENT(char* key, int lineno){
     SymbolTableEntry* temp;
     SymTable_T table = current_table;
@@ -80,7 +80,7 @@ Expr* HANDLE_LVALUE_TO_IDENT(char* key, int lineno){
 
     return makeExpr(SymTable_insert(table, key, temp));
 }
-//done
+
 Expr* HANDLE_LVALUE_TO_LOCAL_IDENT(char* key, int lineno){
     SymbolTableEntry* temp;
     SymTable_T table = current_table;
@@ -100,7 +100,7 @@ Expr* HANDLE_LVALUE_TO_LOCAL_IDENT(char* key, int lineno){
 
     return  makeExpr(SymTable_insert(table, key, temp));
 }
-//done
+
 Expr* HANDLE_LVALUE_TO_GLOBAL_IDENT(char* key, int lineno){
     SymbolTableEntry* temp;
 
@@ -110,7 +110,7 @@ Expr* HANDLE_LVALUE_TO_GLOBAL_IDENT(char* key, int lineno){
     exit(1);
 }
 
-//done
+
 Expr* HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION(Expr* lvalue, Expr* expression, int lineno){
     if(!isLegal(lvalue->sym->scope, stack_top(functionScopeStack))){
         fprintf(stderr, "The variable '%s' at scope %d is inaccessible due to a function declaration at scope %d.\n", lvalue->sym->name, lvalue->sym->scope, stack_top(functionScopeStack));
@@ -154,7 +154,7 @@ Expr* HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION(Expr* lvalue, Expr* expressi
 }
 
 
-//DONE
+
 char* HANDLE_FUNCTION_WITH_NAME(char* key, int lineno){
     SymbolTableEntry* temp;
     SymTable_T table = current_table;
@@ -185,7 +185,7 @@ char* HANDLE_FUNCTION_WITH_NAME(char* key, int lineno){
 	return temp->name;
 }
 
-//done
+
 char* HANDLE_FUNCTION_WITHOUT_NAME(int lineno){
     SymbolTableEntry* temp;
     SymTable_T table = current_table;
@@ -200,7 +200,7 @@ char* HANDLE_FUNCTION_WITHOUT_NAME(int lineno){
 
 	return temp->name;
 }
-//done
+
 SymbolTableEntry* HANDLE_FUNCPREFIX(char* func_name, int lineno){
     SymbolTableEntry* temp = SymTable_lookup(current_table ,func_name);
     Expr* arg = newExpr(programfunc_e);
@@ -217,7 +217,7 @@ SymbolTableEntry* HANDLE_FUNCPREFIX(char* func_name, int lineno){
 
     return temp;
 }
-//done
+
 SymbolTableEntry* HANDLE_FUNCDEF(SymbolTableEntry* funcprefix, unsigned funcbody, int lineno){
     Expr* arg = newExpr(programfunc_e);
 
@@ -232,7 +232,7 @@ SymbolTableEntry* HANDLE_FUNCDEF(SymbolTableEntry* funcprefix, unsigned funcbody
     emit(funcend, NULL, NULL, arg, 0, lineno);
 	return funcprefix;
 }
-//done
+
 Expr* HANDLE_TERM_TO_LVALUE_INC(Expr* lvalue, int lineno){
     if(!lvalue) return (Expr*) 0;
 
@@ -266,7 +266,7 @@ Expr* HANDLE_TERM_TO_UMINUS_EXPR(Expr* expression){
     return temp;
 }
 
-//done
+
 Expr* HANDLE_TERM_TO_INC_LVALUE(Expr* lvalue, int lineno){
     if(!lvalue) return (Expr*) 0;
 
@@ -291,14 +291,14 @@ Expr* HANDLE_TERM_TO_INC_LVALUE(Expr* lvalue, int lineno){
     return temp;
 }
 
-//done
+
 void notBoolExpr(Expr* expression){
     expression->trueList = newList(nextQuadLabel());
     expression->falseList = newList(nextQuadLabel() + 1);
     emit(if_eq, expression, newExprConstBool(1), NULL, 0, 0);
     emit(jump, NULL, NULL, NULL, 0, 0);
 }
-//done
+
 Expr* HANDLE_TERM_TO_NOT_EXPR(Expr* expression)
 {
     Expr* temp = newExpr(boolexpr_e);
@@ -310,12 +310,12 @@ Expr* HANDLE_TERM_TO_NOT_EXPR(Expr* expression)
 
     return temp;
 }
-//done
+
 Expr* HANDLE_PRIM_TO_LVALUE(Expr* lvalue, int lineno){
     return emitIfTableItem(lvalue);
 }
 
-//done
+
 Expr* emitIfTableItem(Expr* e){
     if(e->type != tableitem_e) return e;
     else{
@@ -332,7 +332,7 @@ Expr* emitIfTableItem(Expr* e){
         return result;
     }
 }
-//done
+
 Expr* HANDLE_TERM_TO_LVALUE_DEC(Expr* lvalue, int lineno){
     if(!lvalue) return (Expr*) 0;
 
@@ -385,7 +385,7 @@ Expr* HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR(Expr* lvalue, Expr* expression){
 }
 
 
-//done
+
 char* HANDLE_IDLIST_IDENT(char* key, int lineno){
     SymbolTableEntry* temp;
     SymTable_T table = current_table;
@@ -410,7 +410,7 @@ char* HANDLE_IDLIST_IDENT(char* key, int lineno){
     return temp->name;
 }
 
-//done
+
 Expr* HANDLE_TERM_TO_DEC_LVALUE(Expr* lvalue, int lineno){
     if(!lvalue) return (Expr*) 0;
 
@@ -586,8 +586,6 @@ if(check_arith_eligible(expr2) == -1) {
 }
 
 
-
-//done
 Expr* HANDLE_REL_OP(iopcode op, Expr* expr1, Expr* expr2){
     Expr* temp;
 
@@ -654,7 +652,6 @@ Expr* HANDLE_REL_OP(iopcode op, Expr* expr1, Expr* expr2){
     return temp;
 }
 
-//done
 Expr* HANDLE_BOOL_OP(iopcode op, Expr* expr1, Expr* expr2, unsigned M){
     Expr* temp;
     int isVar = 0;
