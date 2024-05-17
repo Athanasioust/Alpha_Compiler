@@ -338,6 +338,8 @@ char* getStringValueQuad(Expr* e){
     }
 }
 
+
+// return the opcode name of a quad
 const char* str_iopcodeName[] = {
     "assign",
 	"jump",
@@ -366,6 +368,8 @@ const char* str_iopcodeName[] = {
     "param",
     "funcstart"
 };
+
+// check if a quad is a branch
 
 int isBranch(iopcode op) {
 	switch(op) {

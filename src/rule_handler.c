@@ -10,11 +10,12 @@
 
 
 Expr* emitIfTableItem(Expr* e);
-
+// Function to check if an entry is a variable
 int isVar(SymbolTableEntry* temp){
     return temp->type == VAR_FORMAL || temp->type == VAR_GLOBAL || temp->type == VAR_LOCAL;
 }
 
+//Make an expression quad
 Expr* makeExpr(SymbolTableEntry* sym){
     assert(sym);
     Expr* e = (Expr*) malloc(sizeof(Expr));
@@ -30,6 +31,7 @@ Expr* makeExpr(SymbolTableEntry* sym){
     return e;
 }
 
+
 Expr* makeCall (Expr* lvalue, Expr* reversed_elist) {
     Expr* func = emitIfTableItem(lvalue);
     while (reversed_elist) {
@@ -44,6 +46,7 @@ Expr* makeCall (Expr* lvalue, Expr* reversed_elist) {
     return result;
 }
 
+
 void libFunc(SymTable_T head, char* name){
     SymbolTableEntry* temp_entry = makeSymbol(name, 0, 0);
     temp_entry->type = LIBFUNC;
@@ -51,9 +54,11 @@ void libFunc(SymTable_T head, char* name){
     SymTable_insert(head, name, temp_entry);
 }
 
+
 int isLegal(int scope, int func_scope){
     return (scope == 0 || scope > func_scope);
 }
+
 
 int countDigits(int num){
     int count = 0;
@@ -517,40 +522,64 @@ Expr* HANDLE_OBJECTDEF_TO_ELIST(Expr* elist){
     return t;
 }
 
-int check_bool_eligible(Expr* temp){
-    switch(temp->type){
-        case programfunc_e:
-        case libraryfunc_e:
-        case newtable_e:
-        case constbool_e:
-        case conststring_e:
-        case constnum_e:
-        case nil_e:
-            return 1;
-        default:
-            return 0;
+typedef enum {
+    ARITH_ELIGIBLE = 1,
+    ARITH_INELIGIBLE = -1,
+    ARITH_UNKNOWN = 0
+} ArithStatus;
+
+typedef enum {
+    BOOL_ELIGIBLE = 1,
+    BOOL_INELIGIBLE = 0
+} BoolStatus;
+
+int check_arith_eligible(Expr* temp) {
+    static const int ineligible_types[] = {
+        programfunc_e,
+        libraryfunc_e,
+        boolexpr_e,
+        newtable_e,
+        constbool_e,
+        conststring_e,
+        nil_e
+    };
+    
+    for (size_t i = 0; i < sizeof(ineligible_types) / sizeof(ineligible_types[0]); ++i) {
+        if (temp->type == ineligible_types[i]) {
+            return ARITH_INELIGIBLE;
+        }
     }
+    
+    if (temp->type == constnum_e) {
+        return ARITH_ELIGIBLE;
+    }
+    
+    return ARITH_UNKNOWN;
 }
 
-int check_arith_eligible(Expr* temp){
-    switch(temp->type){
-        case programfunc_e:
-        case libraryfunc_e:
-        case boolexpr_e:
-        case newtable_e:
-        case constbool_e:
-        case conststring_e:
-        case nil_e:
-            return -1;
-        case constnum_e:
-            return 1;
-        default:
-            return 0;
+
+
+int check_bool_eligible(Expr* temp) {
+    static const int eligible_types[] = {
+        programfunc_e,
+        libraryfunc_e,
+        newtable_e,
+        constbool_e,
+        conststring_e,
+        constnum_e,
+        nil_e
+    };
+    
+    for (size_t i = 0; i < sizeof(eligible_types) / sizeof(eligible_types[0]); ++i) {
+        if (temp->type == eligible_types[i]) {
+            return BOOL_ELIGIBLE;
+        }
     }
+    
+    return BOOL_INELIGIBLE;
 }
 
 
-//done
 Expr* HANDLE_ARITH_OP(iopcode op, Expr* expr1, Expr* expr2){
     Expr* temp;
 
