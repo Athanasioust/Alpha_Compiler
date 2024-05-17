@@ -39,18 +39,18 @@
 %token<sval> IDENT STRING IF ELSE WHILE FOR FUNCTION RETURN BREAK
              CONTINUE AND NOT OR LOCAL TRUE FALSE NIL ASSIGN PLUS
              MINUS MUL DIV MOD EQUAL NEQUAL INC DEC GT LT GET LET
-             CURLY_OPEN CURLY_CLOSED SQUARE_OPEN SQUARE_CLOSED
+             BRACKET_OPEN BRACKET_CLOSED SQUARE_OPEN SQUARE_CLOSED
              PAR_OPEN PAR_CLOSED SEMI_COLON COMMA COLON DOUBLE_COLON
              DOT DOUBLE_DOT UMINUS
 %type<symval> funcdef funcprefix 
 %type<sval> funcname
 %type<func_addr> funcbody
-%type<exprval> lvalue expression term assignexpr prim member call 
+%type<exprval> lvalue expr term assignexpr prim member call 
                objectdef const elist indexed indexedelem objectarg
 %type<callval> callsuffix normcall methodcall 
 %type<labelval> ifprefix elseprefix whileprefix whileargs M N
 %type<forprefixval> forprefix
-%type<stmtval> break continue statement block statements statements_alt ifstmt
+%type<stmtval> break continue stmt block stmts stmts_other ifstmt
 
 %right ASSIGN
 %left OR
@@ -69,22 +69,22 @@
 
 %%
 
-program:        statements ;
+program:        stmts ;
 
 
-statements:     statements_alt          { $$ = $1; }
+stmts:     stmts_other          { $$ = $1; }
                 |                       { $$ = (stmt_t*) 0;}
                 ;  
 
-statements_alt: statement                                 { $$ = $1; }
-                | statements_alt {resetTemp();} statement {
+stmts_other: stmt                                 { $$ = $1; }
+                | stmts_other {resetTemp();} stmt {
                                             if($1) $$ = $1;
                                             else if($3) $$ = $3;
                                             else $$ = (stmt_t*) 0;
                                         }
                 ;
 
-statement:      expression SEMI_COLON   {$$ = (stmt_t*) 0; makeBoolStmt($1);}
+stmt:      expr SEMI_COLON   {$$ = (stmt_t*) 0; makeBoolStmt($1);}
                 | ifstmt                {$$ = $1;}
                 | whilestmt             {$$ = (stmt_t*) 0;}
                 | forstmt               {$$ = (stmt_t*) 0;}
@@ -96,26 +96,26 @@ statement:      expression SEMI_COLON   {$$ = (stmt_t*) 0; makeBoolStmt($1);}
                 | SEMI_COLON            {$$ = (stmt_t*) 0;}
                 ;
 
-expression:     assignexpr                      {$$ = $1;}
-                | expression PLUS expression    {$$ = HANDLE_ARITH_OP(add, $1, $3);}
-                | expression MINUS expression   {$$ = HANDLE_ARITH_OP(sub, $1, $3);}
-                | expression MUL expression     {$$ = HANDLE_ARITH_OP(mul, $1, $3);}
-                | expression DIV expression     {$$ = HANDLE_ARITH_OP(mydiv, $1, $3);}
-                | expression MOD expression     {$$ = HANDLE_ARITH_OP(mod, $1, $3);}
-                | expression GT expression      {$$ = HANDLE_REL_OP(if_greater, $1, $3);}
-                | expression GET expression     {$$ = HANDLE_REL_OP(if_geatereq, $1, $3);}
-                | expression LT expression      {$$ = HANDLE_REL_OP(if_less, $1, $3);}
-                | expression LET expression     {$$ = HANDLE_REL_OP(if_lesseq, $1, $3);}
-                | expression EQUAL expression   {makeBoolStmt($1); makeBoolStmt($3); $$ = HANDLE_REL_OP(if_eq, $1, $3);}
-                | expression NEQUAL expression  {makeBoolStmt($1); makeBoolStmt($3); $$ = HANDLE_REL_OP(if_noteq, $1, $3);}
-                | expression AND M expression   {$$ = HANDLE_BOOL_OP(and, $1, $4, $3);}
-                | expression OR M expression    {$$ = HANDLE_BOOL_OP(or, $1, $4, $3);}
+expr:     assignexpr                      {$$ = $1;}
+                | expr PLUS expr    {$$ = HANDLE_ARITH_OP(add, $1, $3);}
+                | expr MINUS expr   {$$ = HANDLE_ARITH_OP(sub, $1, $3);}
+                | expr MUL expr     {$$ = HANDLE_ARITH_OP(mul, $1, $3);}
+                | expr DIV expr     {$$ = HANDLE_ARITH_OP(mydiv, $1, $3);}
+                | expr MOD expr     {$$ = HANDLE_ARITH_OP(mod, $1, $3);}
+                | expr GT expr      {$$ = HANDLE_REL_OP(if_greater, $1, $3);}
+                | expr GET expr     {$$ = HANDLE_REL_OP(if_geatereq, $1, $3);}
+                | expr LT expr      {$$ = HANDLE_REL_OP(if_less, $1, $3);}
+                | expr LET expr     {$$ = HANDLE_REL_OP(if_lesseq, $1, $3);}
+                | expr EQUAL expr   {makeBoolStmt($1); makeBoolStmt($3); $$ = HANDLE_REL_OP(if_eq, $1, $3);}
+                | expr NEQUAL expr  {makeBoolStmt($1); makeBoolStmt($3); $$ = HANDLE_REL_OP(if_noteq, $1, $3);}
+                | expr AND M expr   {$$ = HANDLE_BOOL_OP(and, $1, $4, $3);}
+                | expr OR M expr    {$$ = HANDLE_BOOL_OP(or, $1, $4, $3);}
                 | term                          {$$ = $1;}
                 ;
 
-term:           PAR_OPEN expression PAR_CLOSED  {$$ = $2;}
-                | MINUS expression              {$$ = HANDLE_TERM_TO_UMINUS_EXPR($2);} %prec UMINUS
-                | NOT expression                {$$ = HANDLE_TERM_TO_NOT_EXPR($2);}
+term:           PAR_OPEN expr PAR_CLOSED  {$$ = $2;}
+                | MINUS expr              {$$ = HANDLE_TERM_TO_UMINUS_EXPR($2);} %prec UMINUS
+                | NOT expr                {$$ = HANDLE_TERM_TO_NOT_EXPR($2);}
                 | INC lvalue                    {$$ = HANDLE_TERM_TO_INC_LVALUE($2, yylineno);}
                 | lvalue INC                    {$$ = HANDLE_TERM_TO_LVALUE_INC($1, yylineno);}
                 | DEC lvalue                    {$$ = HANDLE_TERM_TO_DEC_LVALUE($2, yylineno);}
@@ -123,7 +123,7 @@ term:           PAR_OPEN expression PAR_CLOSED  {$$ = $2;}
                 | prim                          {$$ = $1;}
                 ;
 
-assignexpr:     lvalue ASSIGN expression        {makeBoolStmt($3); $$ = HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION($1, $3, yylineno);};
+assignexpr:     lvalue ASSIGN expr        {makeBoolStmt($3); $$ = HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION($1, $3, yylineno);};
 
 prim:           lvalue                          {$$ = HANDLE_PRIM_TO_LVALUE($1, yylineno);}
                 | call                          {$$ = $1;}
@@ -139,9 +139,9 @@ lvalue:         IDENT                   {$$ = HANDLE_LVALUE_TO_IDENT($1, yylinen
                 ;
 
 member:         lvalue DOT IDENT                                {$$ = HANDLE_MEMBER_TO_LVALUE_DOT_IDENT($1, $3);}
-                | lvalue SQUARE_OPEN expression SQUARE_CLOSED   {$$ = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR($1, $3);}
+                | lvalue SQUARE_OPEN expr SQUARE_CLOSED   {$$ = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR($1, $3);}
                 | call DOT IDENT                                {$$ = HANDLE_MEMBER_TO_LVALUE_DOT_IDENT($1, $3);}
-                | call SQUARE_OPEN expression SQUARE_CLOSED     {$$ = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR($1, $3);}        
+                | call SQUARE_OPEN expr SQUARE_CLOSED     {$$ = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR($1, $3);}        
                 ;
 
 call:           call PAR_OPEN elist PAR_CLOSED                              {$$ = HANDLE_CALL_ELIST($1, $3);}
@@ -157,8 +157,8 @@ normcall:       PAR_OPEN elist PAR_CLOSED                      {$$ = HANDLE_NORM
 
 methodcall:     DOUBLE_DOT IDENT PAR_OPEN elist PAR_CLOSED     {$$ = HANDLE_METHODCALL($2, $4);};
 
-elist:          expression                  {makeBoolStmt($1); $$ = $1; $$->next = NULL;}
-                | expression COMMA elist    {$$ = HANDLE_ELIST_ADD($1, $3);}
+elist:          expr                  {makeBoolStmt($1); $$ = $1; $$->next = NULL;}
+                | expr COMMA elist    {$$ = HANDLE_ELIST_ADD($1, $3);}
 				|                           {$$ = (Expr*) 0;}
                 ;
 
@@ -172,9 +172,9 @@ indexed:        indexedelem                     {$$ = $1;}
                 | indexedelem COMMA indexed     {$$ = HANDLE_INDEXED_ADD($1, $3);}
                 ;
 
-indexedelem:    CURLY_OPEN expression COLON expression CURLY_CLOSED {makeBoolStmt($4); $$ = HANDLE_INDEXELEM($2, $4);};
+indexedelem:    BRACKET_OPEN expr COLON expr BRACKET_CLOSED {makeBoolStmt($4); $$ = HANDLE_INDEXELEM($2, $4);};
 
-block:          CURLY_OPEN {scope++; current_table = SymTable_next(current_table);} statements CURLY_CLOSED {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table); $$ = $3;};
+block:          BRACKET_OPEN {scope++; current_table = SymTable_next(current_table);} stmts BRACKET_CLOSED {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table); $$ = $3;};
 
 funcdef:        funcprefix
 				{
@@ -231,12 +231,12 @@ idlist:         IDENT                   {HANDLE_IDLIST_IDENT($1, yylineno);}
                 |
                 ;
 
-ifprefix:       IF PAR_OPEN expression PAR_CLOSED   {makeBoolStmt($3); $$ = HANDLE_IFPREFIX($3);}
+ifprefix:       IF PAR_OPEN expr PAR_CLOSED   {makeBoolStmt($3); $$ = HANDLE_IFPREFIX($3);}
 
 elseprefix:     ELSE                                {$$ = HANDLE_ELSEPREFIX(yylineno);}
 
-ifstmt:         ifprefix statement {patchLabel($1, nextQuadLabel()); $$ = $2;} %prec LOWER_THAN_ELSE
-                | ifprefix statement elseprefix statement {
+ifstmt:         ifprefix stmt {patchLabel($1, nextQuadLabel()); $$ = $2;} %prec LOWER_THAN_ELSE
+                | ifprefix stmt elseprefix stmt {
                     patchLabel($1, $3 + 1);
                     patchLabel($3, nextQuadLabel());
                     $$ = $2;
@@ -246,16 +246,16 @@ ifstmt:         ifprefix statement {patchLabel($1, nextQuadLabel()); $$ = $2;} %
 
 whileprefix:    WHILE                               {$$ = nextQuadLabel(); loopCounter++;};
 
-whileargs:      PAR_OPEN expression PAR_CLOSED      {makeBoolStmt($2); $$ = HANDLE_WHILEARGS($2);}
+whileargs:      PAR_OPEN expr PAR_CLOSED      {makeBoolStmt($2); $$ = HANDLE_WHILEARGS($2);}
 
-whilestmt:      whileprefix whileargs statement		{HANDLE_WHILE($1, $2, $3); loopCounter--;}
+whilestmt:      whileprefix whileargs stmt		{HANDLE_WHILE($1, $2, $3); loopCounter--;}
 
 N:              {$$ = nextQuadLabel(); emit(jump, NULL, NULL, NULL, 0, yylineno);};
 M:              {$$ = nextQuadLabel();};
 
-forprefix:      FOR {loopCounter++;} PAR_OPEN elist SEMI_COLON M expression SEMI_COLON {makeBoolStmt($7); $$ = HANDLE_FORPREFIX($6, $7);};
+forprefix:      FOR {loopCounter++;} PAR_OPEN elist SEMI_COLON M expr SEMI_COLON {makeBoolStmt($7); $$ = HANDLE_FORPREFIX($6, $7);};
 
-forstmt:        forprefix N elist PAR_CLOSED N statement N {HANDLE_FORSTMT($1, $2, $5, $7, $6); loopCounter--;};
+forstmt:        forprefix N elist PAR_CLOSED N stmt N {HANDLE_FORSTMT($1, $2, $5, $7, $6); loopCounter--;};
 
 returnstmt:		RETURN SEMI_COLON               {
                                                     if(funcCounter == 0) {
@@ -264,7 +264,7 @@ returnstmt:		RETURN SEMI_COLON               {
                                                     }
                                                     emit(ret, NULL, NULL, NULL, 0, yylineno);
                                                 }
-                | RETURN expression SEMI_COLON  {
+                | RETURN expr SEMI_COLON  {
                                                     makeBoolStmt($2);
                                                     if(funcCounter == 0) {
                                                         fprintf(stderr, "Line %d: Return used outside function", yylineno);
@@ -315,7 +315,7 @@ int main(int argc, char **argv) {
     libFunc(head, "sin");
 
 	if(argc > 3) {
-		fprintf(stderr, "Invalid argument format\nUsage: %s <input_file> [<output_file>]", argv[0]);
+		fprintf(stderr, "Invalid argument format\n");
 		exit(0);
 	}
 
@@ -324,31 +324,16 @@ int main(int argc, char **argv) {
     }
 	else {
 		if(!(yyin = fopen(argv[1], "r"))){
-            fprintf(stderr, "There was an error reading the input file, make sure it exists and the path is written correnctly");
+            fprintf(stderr, "Error opening input file %s\n", argv[1]);
             exit(0);
         }
 	}
 
-	// If an output file was given, redirect what would be printed in stdout to that file
 	if(argc == 3 && !freopen(argv[2], "w", stdout)) {
-		fprintf(stderr, "There was an error reading the output file, make sure it exists and the path is written correnctly");
+		fprintf(stderr, "Error opening output file \n");
 		exit(0);
 	}
-
 	yyparse();
-    SymTable_print(head);
-
-	FILE *fptr = fopen(argv[1], "r");
-	char c;
-
-	printf("Source: \n");
-	c = fgetc(fptr);
-    while (c != EOF) {
-        printf ("%c", c);
-        c = fgetc(fptr);
-	}
-	printf("\n");
-
     printQuads();
     return 0;	
 }

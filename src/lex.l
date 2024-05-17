@@ -1,5 +1,6 @@
 /* Flex options */
 %option yylineno
+%option noyywrap
 
 %{
     #include <stdlib.h>
@@ -16,24 +17,21 @@
 	#	define FILE_EOF EOF
 	#endif
 	
-	// utility macros
 	#ifdef DEBUG
 	#	define DPRINTF(...) fprintf(stderr, __VA_ARGS__)
 	#else
 	#	define DPRINTF(...)
 	#endif
 
-	#define ERROR(message) \
-		fprintf(stderr, "%d : %s : %s\n", yylineno, yytext, message); \
-		exit(0);
+	
 %}
 
-/* Flex macros */
 digit   [0-9]
 space   [\r\n \t\v]
 id      [a-zA-Z][a-zA-Z_0-9]*
 string  \"[^\"\\]*(\\.[^\"\\]*)*\"
 comment "//".*
+multicomment \/\*
 
 %%
 
@@ -66,8 +64,8 @@ comment "//".*
 "<"             {return LT;}
 ">="            {return GET;}
 "<="            {return LET;}
-"{"             {return CURLY_OPEN;}
-"}"             {return CURLY_CLOSED;}
+"{"             {return BRACKET_OPEN;}
+"}"             {return BRACKET_CLOSED;}
 "["             {return SQUARE_OPEN;}
 "]"             {return SQUARE_CLOSED;}
 "("             {return PAR_OPEN;}
@@ -80,8 +78,8 @@ comment "//".*
 ".."            {return DOUBLE_DOT;}
 
 
-"/\*" {
-	block_comments();
+{multicomment} {
+	parseMulticomment("COMMENT");
 }
 
 {id} {
@@ -90,7 +88,6 @@ comment "//".*
 }
 
 {string} {
-	yylval.sval = process_string(strdup(yytext));
 	return STRING;
 }
 
@@ -109,102 +106,46 @@ comment "//".*
 {space} {}
 
 . {
-	ERROR("Unrecognized token");
+	fprintf(stderr, "%d : %s : Unrecognised token\n", yylineno, yytext);
 }
 
 %%
 
-int yywrap() {
-    return 1;
-}
+void parseMulticomment(char * type) {
+    char next;
 
-char* process_string(char* string){
-    size_t len = strlen(string);
-	char *buffer = malloc(len);
+  //look for the end of the comment
+    while(1){
+        next = input();
 
-	string[strlen(string)-1] = '\0'; // ignore closing "
-	
-    int i = 1; // start from 1 to ignore opening "
-	int j = 0;
-
-    while(string[i]){
-        if(string[i] == '\\'){
-			++i;
-            switch(string[i]){
-                case '\0': // e.g. "unclosedstring\" <- closing double quote is getting escaped by backslash
-                    ERROR("Unclosed string");
-                case 'a':
-                    buffer[j] = '\a';
-                    break;
-                case 'b':
-                    buffer[j] = '\b';
-                    break;
-                case 'f':
-                    buffer[j] = '\f';
-                    break;
-                case 'n':
-                    buffer[j] = '\n';
-                    break;
-                case 'r':
-                    buffer[j] = '\r';
-                    break;
-                case 't':
-                    buffer[j] = '\t';
-                    break;
-                case 'v':
-                    buffer[j] = '\v';
-                    break;
-                case '\'':
-                    buffer[j] = '\'';
-                    break;
-                case '"':
-                    buffer[j] = '\"';
-                    break;
-                case '?':
-                    buffer[j] = '\?';
-                    break;
-                case '\\':
-                    buffer[j] = '\\';
-                    break;
-                default:
-					ERROR("Unrecognized escape character");
-            }
-        } else {
-            buffer[j] = string[i];
+        if(next == EOF){
+            printf("EOF, not closing comment");
+            exit(0);
         }
-		++j;
-        ++i;
+    
+        char look_ahead;
+        if(next == '*'){
+            look_ahead = input();
+
+            if(look_ahead == EOF){
+              printf("EOF, not closing comment");
+                exit(0);
+            }
+
+            if(look_ahead == '/'){// end of the comment
+        break;
+            }
+        } else if (next == '/'){//check for nested comments
+            look_ahead = input();
+
+            if(look_ahead == EOF){
+              printf("EOF, not closing comment");
+                exit(0);
+            }
+
+            if(look_ahead == '*'){
+                parseMulticomment("NESTED_COMMENT");
+            }
+        }
     }
-	buffer[j] = '\0';
-    return buffer;
-}
-
-
-void block_comments(){
-	char curr, next;
-	while((curr = input()) != FILE_EOF){
-		switch(curr) {
-		case '*':
-			next = input();
-			if(next == '/'){
-				return;	
-			}
-			else {
-				unput(next);
-			}
-			break;
-		case '/':
-			next = input();
-			if(next == '*'){
-				block_comments();
-			}
-			else {
-				unput(next);
-			}
-			break;
-		default:
-			continue;
-		}
-	}
-	ERROR("Unclosed comment.\n");	
 }

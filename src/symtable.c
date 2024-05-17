@@ -1,9 +1,9 @@
 #include "../include/symtable.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
+#include <stddef.h>
 #include <assert.h>
+#include <stdio.h>
 #include <math.h>
 #define MIN_SIZE 256
 #define MAX_SIZE 32768
@@ -12,6 +12,7 @@
 SymTable_T head;
 SymTable_T current_table;
 
+//Enum to string
 char* enum_to_s[] = {
     "global variable",
     "local variable",
@@ -20,9 +21,10 @@ char* enum_to_s[] = {
     "library functin"
 }; 
 
+//Sizes for the hash table
 int sizes[] = {MIN_SIZE, 512, 1024, 2048, 4096, 8192, 16384, MAX_SIZE};
 
-/* Return a hash code for key. */
+//Hash function
 static unsigned int SymTable_hash(const char *key, size_t max_size){
     size_t ui;
     unsigned int uiHash = 0U;
@@ -31,14 +33,17 @@ static unsigned int SymTable_hash(const char *key, size_t max_size){
     return uiHash % max_size;
 }
 
+//Structs
 typedef struct List* List_T;
 
+//List struct
 struct List {
     char* key;
     SymbolTableEntry* val;
     struct List* next;
 };
 
+//SymTable struct
 struct SymTable{
     size_t max_size;
     size_t length;
@@ -47,8 +52,7 @@ struct SymTable{
     struct SymTable* prev;
 };
 
-/* ================================================= */
-
+//Get the size of the hash table
 size_t get_size(size_t max_size){
 	int index = 0;
 	for(int i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
@@ -61,6 +65,7 @@ size_t get_size(size_t max_size){
     return sizes[(index <= 7 ? index : 7)];
 }
 
+//Create a new hash table
 SymTable_T SymTable_new(void){
     SymTable_T table = malloc(sizeof(struct SymTable));
 
@@ -73,8 +78,8 @@ SymTable_T SymTable_new(void){
     return table;
 }
 
-/* ================================================= */
 
+//Free the hash table
 void SymTable_free(SymTable_T oSymTable){
     List_T temp;
     List_T prev;
@@ -104,15 +109,15 @@ void SymTable_free(SymTable_T oSymTable){
     return;
 }
 
-/* ================================================= */
 
+//Get the length of the hash table
 unsigned int SymTable_getLength(SymTable_T oSymTable){ 
     assert(oSymTable);
     return oSymTable->length;
 }
 
-/* ================================================= */
 
+//Rehash the hash table
 void rehash(SymTable_T table){
     size_t i;
     List_T prev_node;
@@ -142,7 +147,7 @@ void rehash(SymTable_T table){
     table->length++;
 }
 
-
+//Insert a new entry in the hash table
 SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolTableEntry* value){
     List_T new;
     size_t pos;
@@ -169,12 +174,12 @@ SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolT
         oSymTable->buckets[pos] = new;
     }
 
-	//SymTable_print(oSymTable);
+	
     return new->val;
 }
 
-/* ================================================= */
 
+//Hide the entries of the hash table
 void SymTable_hide(SymTable_T oSymTable){
     List_T temp;
     size_t i;
@@ -191,8 +196,7 @@ void SymTable_hide(SymTable_T oSymTable){
     return;
 }
 
-/* ================================================= */
-
+//Lookup an entry in the hash table
 SymbolTableEntry* SymTable_lookup(SymTable_T oSymTable, const char *key){
     List_T temp;
     SymTable_T current = oSymTable;

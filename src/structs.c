@@ -361,6 +361,7 @@ const char* iopcodeName(quad* q){
 }
 
 void printQuads(void) {
+    printf("Quads:\n");
 	char str_label[16] = {0};
 	printf("%8s | %14s | %10s | %10s | %10s | %10s |\n", "quad#", "opcode", "result", "arg1", "arg2", "label");
     for (int i = 1; i < currQuad; i++) {

@@ -150,8 +150,8 @@ enum yysymbol_kind_t
   YYSYMBOL_LT = 32,                        /* LT  */
   YYSYMBOL_GET = 33,                       /* GET  */
   YYSYMBOL_LET = 34,                       /* LET  */
-  YYSYMBOL_CURLY_OPEN = 35,                /* CURLY_OPEN  */
-  YYSYMBOL_CURLY_CLOSED = 36,              /* CURLY_CLOSED  */
+  YYSYMBOL_BRACKET_OPEN = 35,              /* BRACKET_OPEN  */
+  YYSYMBOL_BRACKET_CLOSED = 36,            /* BRACKET_CLOSED  */
   YYSYMBOL_SQUARE_OPEN = 37,               /* SQUARE_OPEN  */
   YYSYMBOL_SQUARE_CLOSED = 38,             /* SQUARE_CLOSED  */
   YYSYMBOL_PAR_OPEN = 39,                  /* PAR_OPEN  */
@@ -166,11 +166,11 @@ enum yysymbol_kind_t
   YYSYMBOL_LOWER_THAN_ELSE = 48,           /* LOWER_THAN_ELSE  */
   YYSYMBOL_YYACCEPT = 49,                  /* $accept  */
   YYSYMBOL_program = 50,                   /* program  */
-  YYSYMBOL_statements = 51,                /* statements  */
-  YYSYMBOL_statements_alt = 52,            /* statements_alt  */
+  YYSYMBOL_stmts = 51,                     /* stmts  */
+  YYSYMBOL_stmts_other = 52,               /* stmts_other  */
   YYSYMBOL_53_1 = 53,                      /* $@1  */
-  YYSYMBOL_statement = 54,                 /* statement  */
-  YYSYMBOL_expression = 55,                /* expression  */
+  YYSYMBOL_stmt = 54,                      /* stmt  */
+  YYSYMBOL_expr = 55,                      /* expr  */
   YYSYMBOL_term = 56,                      /* term  */
   YYSYMBOL_assignexpr = 57,                /* assignexpr  */
   YYSYMBOL_prim = 58,                      /* prim  */
@@ -631,17 +631,17 @@ static const char *const yytname[] =
   "STRING", "IF", "ELSE", "WHILE", "FOR", "FUNCTION", "RETURN", "BREAK",
   "CONTINUE", "AND", "NOT", "OR", "LOCAL", "TRUE", "FALSE", "NIL",
   "ASSIGN", "PLUS", "MINUS", "MUL", "DIV", "MOD", "EQUAL", "NEQUAL", "INC",
-  "DEC", "GT", "LT", "GET", "LET", "CURLY_OPEN", "CURLY_CLOSED",
+  "DEC", "GT", "LT", "GET", "LET", "BRACKET_OPEN", "BRACKET_CLOSED",
   "SQUARE_OPEN", "SQUARE_CLOSED", "PAR_OPEN", "PAR_CLOSED", "SEMI_COLON",
   "COMMA", "COLON", "DOUBLE_COLON", "DOT", "DOUBLE_DOT", "UMINUS",
-  "LOWER_THAN_ELSE", "$accept", "program", "statements", "statements_alt",
-  "$@1", "statement", "expression", "term", "assignexpr", "prim", "lvalue",
-  "member", "call", "callsuffix", "normcall", "methodcall", "elist",
-  "objectdef", "objectarg", "indexed", "indexedelem", "block", "$@2",
-  "funcdef", "$@3", "funcbody", "funcprefix", "funcargs", "$@4", "$@5",
-  "funcname", "const", "idlist", "ifprefix", "elseprefix", "ifstmt",
-  "whileprefix", "whileargs", "whilestmt", "N", "M", "forprefix", "$@6",
-  "forstmt", "returnstmt", "break", "continue", YY_NULLPTR
+  "LOWER_THAN_ELSE", "$accept", "program", "stmts", "stmts_other", "$@1",
+  "stmt", "expr", "term", "assignexpr", "prim", "lvalue", "member", "call",
+  "callsuffix", "normcall", "methodcall", "elist", "objectdef",
+  "objectarg", "indexed", "indexedelem", "block", "$@2", "funcdef", "$@3",
+  "funcbody", "funcprefix", "funcargs", "$@4", "$@5", "funcname", "const",
+  "idlist", "ifprefix", "elseprefix", "ifstmt", "whileprefix", "whileargs",
+  "whilestmt", "N", "M", "forprefix", "$@6", "forstmt", "returnstmt",
+  "break", "continue", YY_NULLPTR
 };
 
 static const char *
@@ -1368,33 +1368,33 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 3: /* statements: statements_alt  */
+  case 3: /* stmts: stmts_other  */
 #line 75 "parser.y"
-                                        { (yyval.stmtval) = (yyvsp[0].stmtval); }
+                                { (yyval.stmtval) = (yyvsp[0].stmtval); }
 #line 1375 "parser.c"
     break;
 
-  case 4: /* statements: %empty  */
+  case 4: /* stmts: %empty  */
 #line 76 "parser.y"
                                         { (yyval.stmtval) = (stmt_t*) 0;}
 #line 1381 "parser.c"
     break;
 
-  case 5: /* statements_alt: statement  */
+  case 5: /* stmts_other: stmt  */
 #line 79 "parser.y"
-                                                          { (yyval.stmtval) = (yyvsp[0].stmtval); }
+                                                  { (yyval.stmtval) = (yyvsp[0].stmtval); }
 #line 1387 "parser.c"
     break;
 
   case 6: /* $@1: %empty  */
 #line 80 "parser.y"
-                                 {resetTemp();}
+                              {resetTemp();}
 #line 1393 "parser.c"
     break;
 
-  case 7: /* statements_alt: statements_alt $@1 statement  */
+  case 7: /* stmts_other: stmts_other $@1 stmt  */
 #line 80 "parser.y"
-                                                          {
+                                                  {
                                             if((yyvsp[-2].stmtval)) (yyval.stmtval) = (yyvsp[-2].stmtval);
                                             else if((yyvsp[0].stmtval)) (yyval.stmtval) = (yyvsp[0].stmtval);
                                             else (yyval.stmtval) = (stmt_t*) 0;
@@ -1402,171 +1402,171 @@ yyreduce:
 #line 1403 "parser.c"
     break;
 
-  case 8: /* statement: expression SEMI_COLON  */
+  case 8: /* stmt: expr SEMI_COLON  */
 #line 87 "parser.y"
-                                        {(yyval.stmtval) = (stmt_t*) 0; makeBoolStmt((yyvsp[-1].exprval));}
+                             {(yyval.stmtval) = (stmt_t*) 0; makeBoolStmt((yyvsp[-1].exprval));}
 #line 1409 "parser.c"
     break;
 
-  case 9: /* statement: ifstmt  */
+  case 9: /* stmt: ifstmt  */
 #line 88 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
 #line 1415 "parser.c"
     break;
 
-  case 10: /* statement: whilestmt  */
+  case 10: /* stmt: whilestmt  */
 #line 89 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
 #line 1421 "parser.c"
     break;
 
-  case 11: /* statement: forstmt  */
+  case 11: /* stmt: forstmt  */
 #line 90 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
 #line 1427 "parser.c"
     break;
 
-  case 12: /* statement: returnstmt  */
+  case 12: /* stmt: returnstmt  */
 #line 91 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
 #line 1433 "parser.c"
     break;
 
-  case 13: /* statement: continue  */
+  case 13: /* stmt: continue  */
 #line 92 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
 #line 1439 "parser.c"
     break;
 
-  case 14: /* statement: break  */
+  case 14: /* stmt: break  */
 #line 93 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
 #line 1445 "parser.c"
     break;
 
-  case 15: /* statement: block  */
+  case 15: /* stmt: block  */
 #line 94 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
 #line 1451 "parser.c"
     break;
 
-  case 16: /* statement: funcdef  */
+  case 16: /* stmt: funcdef  */
 #line 95 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
 #line 1457 "parser.c"
     break;
 
-  case 17: /* statement: SEMI_COLON  */
+  case 17: /* stmt: SEMI_COLON  */
 #line 96 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
 #line 1463 "parser.c"
     break;
 
-  case 18: /* expression: assignexpr  */
+  case 18: /* expr: assignexpr  */
 #line 99 "parser.y"
-                                                {(yyval.exprval) = (yyvsp[0].exprval);}
+                                          {(yyval.exprval) = (yyvsp[0].exprval);}
 #line 1469 "parser.c"
     break;
 
-  case 19: /* expression: expression PLUS expression  */
+  case 19: /* expr: expr PLUS expr  */
 #line 100 "parser.y"
-                                                {(yyval.exprval) = HANDLE_ARITH_OP(add, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_ARITH_OP(add, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1475 "parser.c"
     break;
 
-  case 20: /* expression: expression MINUS expression  */
+  case 20: /* expr: expr MINUS expr  */
 #line 101 "parser.y"
-                                                {(yyval.exprval) = HANDLE_ARITH_OP(sub, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_ARITH_OP(sub, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1481 "parser.c"
     break;
 
-  case 21: /* expression: expression MUL expression  */
+  case 21: /* expr: expr MUL expr  */
 #line 102 "parser.y"
-                                                {(yyval.exprval) = HANDLE_ARITH_OP(mul, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_ARITH_OP(mul, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1487 "parser.c"
     break;
 
-  case 22: /* expression: expression DIV expression  */
+  case 22: /* expr: expr DIV expr  */
 #line 103 "parser.y"
-                                                {(yyval.exprval) = HANDLE_ARITH_OP(mydiv, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_ARITH_OP(mydiv, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1493 "parser.c"
     break;
 
-  case 23: /* expression: expression MOD expression  */
+  case 23: /* expr: expr MOD expr  */
 #line 104 "parser.y"
-                                                {(yyval.exprval) = HANDLE_ARITH_OP(mod, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_ARITH_OP(mod, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1499 "parser.c"
     break;
 
-  case 24: /* expression: expression GT expression  */
+  case 24: /* expr: expr GT expr  */
 #line 105 "parser.y"
-                                                {(yyval.exprval) = HANDLE_REL_OP(if_greater, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_REL_OP(if_greater, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1505 "parser.c"
     break;
 
-  case 25: /* expression: expression GET expression  */
+  case 25: /* expr: expr GET expr  */
 #line 106 "parser.y"
-                                                {(yyval.exprval) = HANDLE_REL_OP(if_geatereq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_REL_OP(if_geatereq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1511 "parser.c"
     break;
 
-  case 26: /* expression: expression LT expression  */
+  case 26: /* expr: expr LT expr  */
 #line 107 "parser.y"
-                                                {(yyval.exprval) = HANDLE_REL_OP(if_less, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_REL_OP(if_less, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1517 "parser.c"
     break;
 
-  case 27: /* expression: expression LET expression  */
+  case 27: /* expr: expr LET expr  */
 #line 108 "parser.y"
-                                                {(yyval.exprval) = HANDLE_REL_OP(if_lesseq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {(yyval.exprval) = HANDLE_REL_OP(if_lesseq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1523 "parser.c"
     break;
 
-  case 28: /* expression: expression EQUAL expression  */
+  case 28: /* expr: expr EQUAL expr  */
 #line 109 "parser.y"
-                                                {makeBoolStmt((yyvsp[-2].exprval)); makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_REL_OP(if_eq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {makeBoolStmt((yyvsp[-2].exprval)); makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_REL_OP(if_eq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1529 "parser.c"
     break;
 
-  case 29: /* expression: expression NEQUAL expression  */
+  case 29: /* expr: expr NEQUAL expr  */
 #line 110 "parser.y"
-                                                {makeBoolStmt((yyvsp[-2].exprval)); makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_REL_OP(if_noteq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                    {makeBoolStmt((yyvsp[-2].exprval)); makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_REL_OP(if_noteq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1535 "parser.c"
     break;
 
-  case 30: /* expression: expression AND M expression  */
+  case 30: /* expr: expr AND M expr  */
 #line 111 "parser.y"
-                                                {(yyval.exprval) = HANDLE_BOOL_OP(and, (yyvsp[-3].exprval), (yyvsp[0].exprval), (yyvsp[-1].labelval));}
+                                    {(yyval.exprval) = HANDLE_BOOL_OP(and, (yyvsp[-3].exprval), (yyvsp[0].exprval), (yyvsp[-1].labelval));}
 #line 1541 "parser.c"
     break;
 
-  case 31: /* expression: expression OR M expression  */
+  case 31: /* expr: expr OR M expr  */
 #line 112 "parser.y"
-                                                {(yyval.exprval) = HANDLE_BOOL_OP(or, (yyvsp[-3].exprval), (yyvsp[0].exprval), (yyvsp[-1].labelval));}
+                                    {(yyval.exprval) = HANDLE_BOOL_OP(or, (yyvsp[-3].exprval), (yyvsp[0].exprval), (yyvsp[-1].labelval));}
 #line 1547 "parser.c"
     break;
 
-  case 32: /* expression: term  */
+  case 32: /* expr: term  */
 #line 113 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
 #line 1553 "parser.c"
     break;
 
-  case 33: /* term: PAR_OPEN expression PAR_CLOSED  */
+  case 33: /* term: PAR_OPEN expr PAR_CLOSED  */
 #line 116 "parser.y"
-                                                {(yyval.exprval) = (yyvsp[-1].exprval);}
+                                          {(yyval.exprval) = (yyvsp[-1].exprval);}
 #line 1559 "parser.c"
     break;
 
-  case 34: /* term: MINUS expression  */
+  case 34: /* term: MINUS expr  */
 #line 117 "parser.y"
-                                                {(yyval.exprval) = HANDLE_TERM_TO_UMINUS_EXPR((yyvsp[0].exprval));}
+                                          {(yyval.exprval) = HANDLE_TERM_TO_UMINUS_EXPR((yyvsp[0].exprval));}
 #line 1565 "parser.c"
     break;
 
-  case 35: /* term: NOT expression  */
+  case 35: /* term: NOT expr  */
 #line 118 "parser.y"
-                                                {(yyval.exprval) = HANDLE_TERM_TO_NOT_EXPR((yyvsp[0].exprval));}
+                                          {(yyval.exprval) = HANDLE_TERM_TO_NOT_EXPR((yyvsp[0].exprval));}
 #line 1571 "parser.c"
     break;
 
@@ -1600,9 +1600,9 @@ yyreduce:
 #line 1601 "parser.c"
     break;
 
-  case 41: /* assignexpr: lvalue ASSIGN expression  */
+  case 41: /* assignexpr: lvalue ASSIGN expr  */
 #line 126 "parser.y"
-                                                {makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION((yyvsp[-2].exprval), (yyvsp[0].exprval), yylineno);}
+                                          {makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION((yyvsp[-2].exprval), (yyvsp[0].exprval), yylineno);}
 #line 1607 "parser.c"
     break;
 
@@ -1666,9 +1666,9 @@ yyreduce:
 #line 1667 "parser.c"
     break;
 
-  case 52: /* member: lvalue SQUARE_OPEN expression SQUARE_CLOSED  */
+  case 52: /* member: lvalue SQUARE_OPEN expr SQUARE_CLOSED  */
 #line 142 "parser.y"
-                                                                {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
+                                                          {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
 #line 1673 "parser.c"
     break;
 
@@ -1678,9 +1678,9 @@ yyreduce:
 #line 1679 "parser.c"
     break;
 
-  case 54: /* member: call SQUARE_OPEN expression SQUARE_CLOSED  */
+  case 54: /* member: call SQUARE_OPEN expr SQUARE_CLOSED  */
 #line 144 "parser.y"
-                                                                {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
+                                                          {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
 #line 1685 "parser.c"
     break;
 
@@ -1726,15 +1726,15 @@ yyreduce:
 #line 1727 "parser.c"
     break;
 
-  case 62: /* elist: expression  */
+  case 62: /* elist: expr  */
 #line 160 "parser.y"
-                                            {makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = (yyvsp[0].exprval); (yyval.exprval)->next = NULL;}
+                                      {makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = (yyvsp[0].exprval); (yyval.exprval)->next = NULL;}
 #line 1733 "parser.c"
     break;
 
-  case 63: /* elist: expression COMMA elist  */
+  case 63: /* elist: expr COMMA elist  */
 #line 161 "parser.y"
-                                            {(yyval.exprval) = HANDLE_ELIST_ADD((yyvsp[-2].exprval), (yyvsp[0].exprval));}
+                                      {(yyval.exprval) = HANDLE_ELIST_ADD((yyvsp[-2].exprval), (yyvsp[0].exprval));}
 #line 1739 "parser.c"
     break;
 
@@ -1774,21 +1774,21 @@ yyreduce:
 #line 1775 "parser.c"
     break;
 
-  case 70: /* indexedelem: CURLY_OPEN expression COLON expression CURLY_CLOSED  */
+  case 70: /* indexedelem: BRACKET_OPEN expr COLON expr BRACKET_CLOSED  */
 #line 175 "parser.y"
-                                                                    {makeBoolStmt((yyvsp[-1].exprval)); (yyval.exprval) = HANDLE_INDEXELEM((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
+                                                            {makeBoolStmt((yyvsp[-1].exprval)); (yyval.exprval) = HANDLE_INDEXELEM((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
 #line 1781 "parser.c"
     break;
 
   case 71: /* $@2: %empty  */
 #line 177 "parser.y"
-                           {scope++; current_table = SymTable_next(current_table);}
+                             {scope++; current_table = SymTable_next(current_table);}
 #line 1787 "parser.c"
     break;
 
-  case 72: /* block: CURLY_OPEN $@2 statements CURLY_CLOSED  */
+  case 72: /* block: BRACKET_OPEN $@2 stmts BRACKET_CLOSED  */
 #line 177 "parser.y"
-                                                                                                            {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table); (yyval.stmtval) = (yyvsp[-1].stmtval);}
+                                                                                                           {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table); (yyval.stmtval) = (yyvsp[-1].stmtval);}
 #line 1793 "parser.c"
     break;
 
@@ -1910,9 +1910,9 @@ yyreduce:
 #line 1911 "parser.c"
     break;
 
-  case 90: /* ifprefix: IF PAR_OPEN expression PAR_CLOSED  */
+  case 90: /* ifprefix: IF PAR_OPEN expr PAR_CLOSED  */
 #line 234 "parser.y"
-                                                    {makeBoolStmt((yyvsp[-1].exprval)); (yyval.labelval) = HANDLE_IFPREFIX((yyvsp[-1].exprval));}
+                                              {makeBoolStmt((yyvsp[-1].exprval)); (yyval.labelval) = HANDLE_IFPREFIX((yyvsp[-1].exprval));}
 #line 1917 "parser.c"
     break;
 
@@ -1922,15 +1922,15 @@ yyreduce:
 #line 1923 "parser.c"
     break;
 
-  case 92: /* ifstmt: ifprefix statement  */
+  case 92: /* ifstmt: ifprefix stmt  */
 #line 238 "parser.y"
-                                   {patchLabel((yyvsp[-1].labelval), nextQuadLabel()); (yyval.stmtval) = (yyvsp[0].stmtval);}
+                              {patchLabel((yyvsp[-1].labelval), nextQuadLabel()); (yyval.stmtval) = (yyvsp[0].stmtval);}
 #line 1929 "parser.c"
     break;
 
-  case 93: /* ifstmt: ifprefix statement elseprefix statement  */
+  case 93: /* ifstmt: ifprefix stmt elseprefix stmt  */
 #line 239 "parser.y"
-                                                          {
+                                                {
                     patchLabel((yyvsp[-3].labelval), (yyvsp[-1].labelval) + 1);
                     patchLabel((yyvsp[-1].labelval), nextQuadLabel());
                     (yyval.stmtval) = (yyvsp[-2].stmtval);
@@ -1945,13 +1945,13 @@ yyreduce:
 #line 1946 "parser.c"
     break;
 
-  case 95: /* whileargs: PAR_OPEN expression PAR_CLOSED  */
+  case 95: /* whileargs: PAR_OPEN expr PAR_CLOSED  */
 #line 249 "parser.y"
-                                                    {makeBoolStmt((yyvsp[-1].exprval)); (yyval.labelval) = HANDLE_WHILEARGS((yyvsp[-1].exprval));}
+                                              {makeBoolStmt((yyvsp[-1].exprval)); (yyval.labelval) = HANDLE_WHILEARGS((yyvsp[-1].exprval));}
 #line 1952 "parser.c"
     break;
 
-  case 96: /* whilestmt: whileprefix whileargs statement  */
+  case 96: /* whilestmt: whileprefix whileargs stmt  */
 #line 251 "parser.y"
                                                         {HANDLE_WHILE((yyvsp[-2].labelval), (yyvsp[-1].labelval), (yyvsp[0].stmtval)); loopCounter--;}
 #line 1958 "parser.c"
@@ -1975,15 +1975,15 @@ yyreduce:
 #line 1976 "parser.c"
     break;
 
-  case 100: /* forprefix: FOR $@6 PAR_OPEN elist SEMI_COLON M expression SEMI_COLON  */
+  case 100: /* forprefix: FOR $@6 PAR_OPEN elist SEMI_COLON M expr SEMI_COLON  */
 #line 256 "parser.y"
-                                                                                       {makeBoolStmt((yyvsp[-1].exprval)); (yyval.forprefixval) = HANDLE_FORPREFIX((yyvsp[-2].labelval), (yyvsp[-1].exprval));}
+                                                                                 {makeBoolStmt((yyvsp[-1].exprval)); (yyval.forprefixval) = HANDLE_FORPREFIX((yyvsp[-2].labelval), (yyvsp[-1].exprval));}
 #line 1982 "parser.c"
     break;
 
-  case 101: /* forstmt: forprefix N elist PAR_CLOSED N statement N  */
+  case 101: /* forstmt: forprefix N elist PAR_CLOSED N stmt N  */
 #line 258 "parser.y"
-                                                           {HANDLE_FORSTMT((yyvsp[-6].forprefixval), (yyvsp[-5].labelval), (yyvsp[-2].labelval), (yyvsp[0].labelval), (yyvsp[-1].stmtval)); loopCounter--;}
+                                                      {HANDLE_FORSTMT((yyvsp[-6].forprefixval), (yyvsp[-5].labelval), (yyvsp[-2].labelval), (yyvsp[0].labelval), (yyvsp[-1].stmtval)); loopCounter--;}
 #line 1988 "parser.c"
     break;
 
@@ -1999,9 +1999,9 @@ yyreduce:
 #line 2000 "parser.c"
     break;
 
-  case 103: /* returnstmt: RETURN expression SEMI_COLON  */
+  case 103: /* returnstmt: RETURN expr SEMI_COLON  */
 #line 267 "parser.y"
-                                                {
+                                          {
                                                     makeBoolStmt((yyvsp[-1].exprval));
                                                     if(funcCounter == 0) {
                                                         fprintf(stderr, "Line %d: Return used outside function", yylineno);
@@ -2256,7 +2256,7 @@ int main(int argc, char **argv) {
     libFunc(head, "sin");
 
 	if(argc > 3) {
-		fprintf(stderr, "Invalid argument format\nUsage: %s <input_file> [<output_file>]", argv[0]);
+		fprintf(stderr, "Invalid argument format\n");
 		exit(0);
 	}
 
@@ -2265,31 +2265,16 @@ int main(int argc, char **argv) {
     }
 	else {
 		if(!(yyin = fopen(argv[1], "r"))){
-            fprintf(stderr, "There was an error reading the input file, make sure it exists and the path is written correnctly");
+            fprintf(stderr, "Error opening input file %s\n", argv[1]);
             exit(0);
         }
 	}
 
-	// If an output file was given, redirect what would be printed in stdout to that file
 	if(argc == 3 && !freopen(argv[2], "w", stdout)) {
-		fprintf(stderr, "There was an error reading the output file, make sure it exists and the path is written correnctly");
+		fprintf(stderr, "Error opening output file \n");
 		exit(0);
 	}
-
 	yyparse();
-    SymTable_print(head);
-
-	FILE *fptr = fopen(argv[1], "r");
-	char c;
-
-	printf("Source: \n");
-	c = fgetc(fptr);
-    while (c != EOF) {
-        printf ("%c", c);
-        c = fgetc(fptr);
-	}
-	printf("\n");
-
     printQuads();
     return 0;	
 }
