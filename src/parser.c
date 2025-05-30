@@ -2242,6 +2242,7 @@ int main(int argc, char **argv) {
     head = SymTable_new();
     current_table = head;
 
+    // Add library functions
     libFunc(head, "print");
     libFunc(head, "input");
     libFunc(head, "objectmemberkeys");
@@ -2255,11 +2256,14 @@ int main(int argc, char **argv) {
     libFunc(head, "cos");
     libFunc(head, "sin");
 
+
+    // Check for correct number of arguments
 	if(argc > 3) {
 		fprintf(stderr, "Invalid argument format\n");
 		exit(0);
 	}
 
+    // Open input file
     if(argc == 1) {
 		yyin = stdin;
     }
@@ -2270,6 +2274,7 @@ int main(int argc, char **argv) {
         }
 	}
 
+    // Open output file
 	if(argc == 3 && !freopen(argv[2], "w", stdout)) {
 		fprintf(stderr, "Error opening output file \n");
 		exit(0);
