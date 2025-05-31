@@ -1,0 +1,26 @@
+// Math functions
+x = 16;
+y = sqrt(x);
+print("sqrt(16) = ", y);
+
+angle = 0;
+sin_val = sin(angle);
+cos_val = cos(angle);
+print("sin(0) = ", sin_val);
+print("cos(0) = ", cos_val);
+
+// Type checking
+num = 42;
+str = "hello";
+arr = [1, 2, 3];
+func = function() { return 0; };
+
+print("typeof(42) = ", typeof(num));
+print("typeof('hello') = ", typeof(str));
+print("typeof([1,2,3]) = ", typeof(arr));
+print("typeof(function) = ", typeof(func));
+
+// String to number conversion
+str_num = "123";
+num_val = strtonum(str_num);
+print("strtonum('123') = ", num_val);

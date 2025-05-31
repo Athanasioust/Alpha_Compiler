@@ -1,0 +1,27 @@
+// Break in while loop
+i = 0;
+while (i < 10) {
+    if (i == 5) {
+        break;
+    }
+    print("i = ", i);
+    i++;
+}
+
+// Continue in for loop
+for (j = 0; j < 10; j++) {
+    if (j % 2 == 0) {
+        continue;
+    }
+    print("Odd number: ", j);
+}
+
+// Nested loops with break and continue
+for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+        if (i == 1 and j == 1) {
+            continue;
+        }
+        print("i = ", i, ", j = ", j);
+    }
+}

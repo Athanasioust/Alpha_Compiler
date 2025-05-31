@@ -24,27 +24,29 @@ void expand (void) {
 }
 
 // Emit a quad
-void emit (
-        iopcode        op,
-        Expr*        arg1,
-        Expr*        arg2,
-        Expr*        result,
-        unsigned    label,
-        unsigned    line
-) {
-    // If the vector of quad is full, expand length
+void emit(iopcode op, Expr* arg1, Expr* arg2, Expr* result, unsigned label, unsigned line) {
+     // Debug check
+    if (result && (result->type == var_e || result->type == arithmexpr_e || 
+                   result->type == assignexpr_e || result->type == tableitem_e)) {
+        if (!result->sym) {
+            fprintf(stderr, "ERROR: Emitting quad with result that has NULL sym!\n");
+            fprintf(stderr, "Quad: op=%s, line=%d\n", str_iopcodeName[op], line);
+            exit(1);
+        }
+    }
+    
     if (currQuad == total) {
         expand();
     }
-
-    // Consturct new quad
-    quad* p		= quads + currQuad++;
-    p->arg1		= arg1;
-    p->arg2		= arg2;
-    p->result	= result;
-    p->label	= label;
-    p->line		= line;
-	p->op		= op;
+    
+    quad* p = quads + currQuad++;
+    p->op = op;
+    p->arg1 = arg1;  // These should store the full Expr, including sym pointer
+    p->arg2 = arg2;
+    p->result = result;
+    p->label = label;
+    p->line = line;
+    p->taddress = 0;
 }
 
 unsigned programVarOffset = 0;
@@ -173,15 +175,33 @@ char* newTempName(){
 // Return a new temporary symbol
 SymbolTableEntry* newTemp(){
     char* name = newTempName();
-    SymbolTableEntry* sym = SymTable_lookup(current_table, name);
-    if(sym) return sym;
-    SymbolTableEntry* temp;
-    temp = makeSymbol(name, 0, scope);
+    
+     printf("DEBUG newTemp: Creating temp %s in scope %d, space %d\n", 
+           name, scope, currScopeSpace());
+    SymbolTableEntry* temp = makeSymbol(name, 0, scope);
+    if (!temp) {
+        fprintf(stderr, "Error: Failed to create temporary symbol\n");
+        exit(1);
+    }
+    
+    
     temp->type = (scope ? VAR_LOCAL : VAR_GLOBAL);
     temp->space = currScopeSpace();
     temp->offset = currScopeOffset();
+    temp->taddress = 0;
+    temp->totalLocals = 0;
+    temp->iadress = 0;
+    
     incCurrScopeOffset();
-    return temp;
+    
+    // Insert into symbol table
+    SymbolTableEntry* result = SymTable_insert(current_table, name, temp);
+    if (!result) {
+        fprintf(stderr, "Error: Failed to insert temporary into symbol table\n");
+        exit(1);
+    }
+    
+    return result;
 }
 
 // Return a new expression
@@ -222,6 +242,7 @@ SymbolTableEntry* makeSymbol(char* key, int lineno, int scope){
     temp->line = lineno;
     temp->scope = scope;
     temp->returnList = 0;
+    temp->taddress = 0;
 
     return temp;
 }

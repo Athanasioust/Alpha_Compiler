@@ -1,0 +1,26 @@
+// Table creation with indexed elements
+arr = [10, 20, 30, 40, 50];
+
+// Accessing table elements
+print("arr[0] = ", arr[0]);
+print("arr[2] = ", arr[2]);
+
+// Modifying table elements
+arr[1] = 100;
+print("arr[1] after modification = ", arr[1]);
+
+// Table with object syntax
+obj = [
+    {"name": "Alice", "age": 25},
+    {"name": "Bob", "age": 30}
+];
+
+// Nested tables
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+];
+
+// Table with mixed types
+mixed = [42, "hello", true, nil, [1, 2, 3]];

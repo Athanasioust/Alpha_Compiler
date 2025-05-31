@@ -1,0 +1,33 @@
+// Object with member access
+person = [];
+person.name = "John";
+person.age = 30;
+person.greet = function() {
+    print("Hello, I'm ", person.name);
+};
+
+// Accessing members
+print("Name: ", person.name);
+print("Age: ", person.age);
+person.greet();
+
+// Method call syntax
+obj = [];
+obj.value = 10;
+obj.increment = function() {
+    obj.value++;
+};
+
+obj.increment();
+print("Value after increment: ", obj.value);
+
+// Nested member access
+company = [];
+company.name = "TechCorp";
+company.employee = [];
+company.employee.name = "Alice";
+company.employee.salary = 50000;
+
+print("Company: ", company.name);
+print("Employee: ", company.employee.name);
+print("Salary: ", company.employee.salary);

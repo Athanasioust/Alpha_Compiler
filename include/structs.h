@@ -69,6 +69,7 @@ typedef struct SymbolTableEntry {
     unsigned iadress;
     unsigned totalLocals;
     unsigned returnList;
+    unsigned taddress;  // Target address for functions
 } SymbolTableEntry;
 
 typedef struct ForLoopPrefix {

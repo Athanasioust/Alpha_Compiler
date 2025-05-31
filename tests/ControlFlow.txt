@@ -1,0 +1,32 @@
+// If-else statements
+x = 10;
+y = 20;
+
+if (x < y) {
+    print("x is less than y");
+} else {
+    print("x is not less than y");
+}
+
+// Nested if-else
+if (x > 0) {
+    if (y > 0) {
+        print("Both positive");
+    } else {
+        print("x positive, y not");
+    }
+} else {
+    print("x not positive");
+}
+
+// While loop
+i = 0;
+while (i < 5) {
+    print("i = ", i);
+    i++;
+}
+
+// For loop
+for (j = 0; j < 5; j++) {
+    print("j = ", j);
+}

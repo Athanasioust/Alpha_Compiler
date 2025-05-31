@@ -340,5 +340,8 @@ int main(int argc, char **argv) {
 	}
 	yyparse();
     printQuads();
+    generate();
+    print_target_code();
+    print_binary_file("alpha.abc");
     return 0;	
 }

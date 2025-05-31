@@ -609,6 +609,11 @@ if(check_arith_eligible(expr2) == -1) {
 
     temp = newExpr(arithmexpr_e);
     temp->sym = newTemp();
+    // Make sure newTemp() is working correctly
+    if (!temp->sym) {
+        fprintf(stderr, "Error: Failed to create temporary symbol\n");
+        exit(1);
+    }
     emit(op, expr1, expr2, temp, 0, 0);
 
     return temp;

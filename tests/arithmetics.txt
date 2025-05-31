@@ -1,0 +1,24 @@
+// Basic arithmetic operations
+a = 10;
+b = 20;
+c = a + b;
+d = c * 2;
+e = d / 4;
+f = e % 3;
+
+// Compound expressions
+result = (a + b) * (c - d) / e;
+
+// Unary minus
+neg = -a;
+neg2 = -(a + b);
+
+// Pre/post increment and decrement
+++a;
+b++;
+--c;
+d--;
+
+print("a = ", a);
+print("b = ", b);
+print("result = ", result);

@@ -1,0 +1,15 @@
+// test_anon_simple.alpha
+f = (function(x) {
+    return x * x;
+});
+
+function makeAdder(x) {
+    local addX;
+    addX = (function(y) {
+        return x + y;
+    });
+    return addX;
+}
+
+result = f(5);
+print(result);
