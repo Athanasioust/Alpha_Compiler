@@ -288,7 +288,7 @@ void patch_incomplete_jumps(void) {
 void push_funcstack(SymbolTableEntry* f) {
     func_stack* fs = (func_stack*)malloc(sizeof(func_stack));
     fs->func = f;
-    fs->returnList = 0;
+    fs->returnList = NULL;
     fs->next = funcstack;
     funcstack = fs;
 }
@@ -597,8 +597,13 @@ void generate_FUNCSTART(quad* q) {
 }
 
 void generate_FUNCEND(quad* q) {
+    
+    
     func_stack* fs = pop_funcstack();
+    
+    
     backpatch_returns(fs->returnList);
+    
     
     q->taddress = curr_instruction;
     
@@ -638,8 +643,8 @@ void generate_RETURN(quad* q) {
         incomplete_jump* ij = (incomplete_jump*)malloc(sizeof(incomplete_jump));
         ij->instrNo = curr_instruction;
         ij->iaddress = 0;
-        ij->next = (incomplete_jump*)funcstack->returnList;
-        funcstack->returnList = (unsigned)ij;
+        ij->next = funcstack->returnList;  
+        funcstack->returnList = ij;       
     }
     
     t.opcode = jump_v;
@@ -651,8 +656,8 @@ void generate_RETURN(quad* q) {
     emit_instruction(&t);
 }
 
-void backpatch_returns(unsigned returnList) {
-    incomplete_jump* ij = (incomplete_jump*)returnList;
+void backpatch_returns(incomplete_jump* returnList) {
+    incomplete_jump* ij = returnList;
     while (ij) {
         instructions[ij->instrNo].result.val = curr_instruction;
         incomplete_jump* del = ij;
@@ -663,23 +668,17 @@ void backpatch_returns(unsigned returnList) {
 
 // Main generation function
 void generate(void) {
-    printf("Starting target code generation for %d quads\n", currQuad - 1);
     for (unsigned i = 1; i < currQuad; i++) {
+        
         quads[i].taddress = curr_instruction;
         
-        // Add bounds check
         if (quads[i].op < 0 || quads[i].op >= sizeof(generators)/sizeof(generators[0])) {
             fprintf(stderr, "Error: Invalid opcode %d at quad %d\n", quads[i].op, i);
             exit(1);
         }
         
-        // Add null check
-        if (!generators[quads[i].op]) {
-            fprintf(stderr, "Error: No generator for opcode %d\n", quads[i].op);
-            exit(1);
-        }
-        
         generators[quads[i].op](&quads[i]);
+        
     }
     patch_incomplete_jumps();
     print_const_tables();

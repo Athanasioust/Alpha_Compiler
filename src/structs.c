@@ -10,6 +10,8 @@ unsigned	anon_count = 0;
 quad*		quads = (void*)0; // quad vector
 unsigned	total = 1;
 unsigned	currQuad = 1;
+static unsigned tempCounterPerScope[100] = {0}; // Support up to 100 nested scopes
+static unsigned maxScope = 0;
 
 // Expand the quad vector
 void expand (void) {
@@ -25,15 +27,8 @@ void expand (void) {
 
 // Emit a quad
 void emit(iopcode op, Expr* arg1, Expr* arg2, Expr* result, unsigned label, unsigned line) {
-     // Debug check
-    if (result && (result->type == var_e || result->type == arithmexpr_e || 
-                   result->type == assignexpr_e || result->type == tableitem_e)) {
-        if (!result->sym) {
-            fprintf(stderr, "ERROR: Emitting quad with result that has NULL sym!\n");
-            fprintf(stderr, "Quad: op=%s, line=%d\n", str_iopcodeName[op], line);
-            exit(1);
-        }
-    }
+    
+    
     
     if (currQuad == total) {
         expand();
@@ -47,6 +42,14 @@ void emit(iopcode op, Expr* arg1, Expr* arg2, Expr* result, unsigned label, unsi
     p->label = label;
     p->line = line;
     p->taddress = 0;
+    
+    // Check for heap corruption
+    if (result && result->sym) {
+        if (strlen(result->sym->name) > 100) { // Sanity check
+            printf("ERROR: Corrupted symbol name detected!\n");
+            exit(1);
+        }
+    }
 }
 
 unsigned programVarOffset = 0;
@@ -59,6 +62,7 @@ unsigned funcCounter = 0;
 
 // makes a bool statement
 void makeBoolStmt(Expr* e){
+    
     if(e->type == boolexpr_e){
         patchList(e->trueList, nextQuadLabel());
         emit(assign, newExprConstBool(1), NULL, e, 0, 0);
@@ -66,8 +70,8 @@ void makeBoolStmt(Expr* e){
         patchList(e->falseList, nextQuadLabel());
         emit(assign, newExprConstBool(0), NULL, e, 0, 0);
     }
+    
 }
-
 // Return the current scope space
 ScopeSpace currScopeSpace(void){
     if(scopeSpaceCounter == 1){
@@ -134,7 +138,12 @@ void resetFunctionLocalOffset(void){
 }
 
 // Reset the temp counter
-void resetTemp() {tempCounter = 0;}
+void resetTemp() {
+    // Only reset if we're in a deeper scope than we've seen
+    if (scope <= maxScope) {
+        tempCounter = tempCounterPerScope[scope];
+    }
+}
 
 // Restore the current scope offset
 void restoreCurrScopeOffset(unsigned n){
@@ -160,29 +169,37 @@ unsigned nextQuadLabel(void){
 // Return a name for a new temporary symbol
 char* newTempName(){
     int count = 0, num = tempCounter;
-	while (num) {
-		num /= 10;
-		++count;
-	}
+    
+    if (num == 0) {
+        count = 1;
+    } else {
+        while (num) {
+            num /= 10;
+            ++count;
+        }
+    }
 
     char* tempName = malloc(count + 3);
-
     sprintf(tempName, "_t%d", tempCounter++);
-
+    
+    // Update scope tracking
+    if (scope > maxScope) maxScope = scope;
+    tempCounterPerScope[scope] = tempCounter;
+    
     return tempName;
 }
 
 // Return a new temporary symbol
 SymbolTableEntry* newTemp(){
     char* name = newTempName();
-    
-     printf("DEBUG newTemp: Creating temp %s in scope %d, space %d\n", 
-           name, scope, currScopeSpace());
-    SymbolTableEntry* temp = makeSymbol(name, 0, scope);
-    if (!temp) {
-        fprintf(stderr, "Error: Failed to create temporary symbol\n");
+    if (strlen(name) > 100) {
+        printf("ERROR: Temp name too long: %s\n", name);
         exit(1);
     }
+    
+    
+    
+    SymbolTableEntry* temp = makeSymbol(name, 0, scope);
     
     
     temp->type = (scope ? VAR_LOCAL : VAR_GLOBAL);
@@ -234,11 +251,15 @@ Expr* newExprConstBool(unsigned char boolean){
 }
 
 // create a new table item expression
+
 SymbolTableEntry* makeSymbol(char* key, int lineno, int scope){
+    
     SymbolTableEntry* temp = calloc(1, sizeof(SymbolTableEntry));
     temp->isActive = 1;
-    temp->name = malloc(sizeof(key) + 1);
+    temp->name = malloc(strlen(key) + 1);
     strcpy(temp->name, key);
+    
+    
     temp->line = lineno;
     temp->scope = scope;
     temp->returnList = 0;

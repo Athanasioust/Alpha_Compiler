@@ -144,11 +144,11 @@ void rehash(SymTable_T table){
     }
 
     free(prev_buckets);
-
-    table->length++;
+    
 }
 
 //Insert a new entry in the hash table
+
 SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolTableEntry* value){
     List_T new;
     size_t pos;
@@ -162,7 +162,11 @@ SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolT
     pos = SymTable_hash(key, oSymTable->max_size);
 
     new = malloc(sizeof(struct List));
-    new->key = malloc(sizeof(key) + 1);
+    new->key = malloc(strlen(key) + 1);  // Fixed: use strlen() not sizeof()
+    if (strlen(key) > 1000) { // Sanity check
+        printf("ERROR: Suspiciously long key: %s\n", key);
+        exit(1);
+    }
     strcpy(new->key, key);
     new->val = value;
 
@@ -175,7 +179,6 @@ SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolT
         oSymTable->buckets[pos] = new;
     }
 
-	
     return new->val;
 }
 

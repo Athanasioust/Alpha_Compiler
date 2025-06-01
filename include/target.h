@@ -72,7 +72,7 @@ typedef struct incomplete_jump {
 // Function stack for nested functions
 typedef struct func_stack {
     SymbolTableEntry* func;
-    unsigned returnList;
+    incomplete_jump* returnList;  
     struct func_stack* next;
 } func_stack;
 
@@ -158,7 +158,7 @@ void patch_incomplete_jumps(void);
 void push_funcstack(SymbolTableEntry*);
 func_stack* pop_funcstack(void);
 
-void backpatch_returns(unsigned);
+void backpatch_returns(incomplete_jump*);
 
 void reset_operand(vmarg*);
 

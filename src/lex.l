@@ -88,6 +88,7 @@ multicomment \/\*
 }
 
 {string} {
+	yylval.sval = strdup(yytext);
 	return STRING;
 }
 

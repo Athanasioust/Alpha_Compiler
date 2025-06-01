@@ -77,14 +77,14 @@ stmts:     stmts_other          { $$ = $1; }
                 ;  
 
 stmts_other: stmt                                 { $$ = $1; }
-                | stmts_other {resetTemp();} stmt {
+                | stmts_other stmt {  // Remove {resetTemp();}
                                             if($1) $$ = $1;
-                                            else if($3) $$ = $3;
+                                            else if($2) $$ = $2;
                                             else $$ = (stmt_t*) 0;
                                         }
                 ;
 
-stmt:      expr SEMI_COLON   {$$ = (stmt_t*) 0; makeBoolStmt($1);}
+stmt:      expr SEMI_COLON   { $$ = (stmt_t*) 0; makeBoolStmt($1);}
                 | ifstmt                {$$ = $1;}
                 | whilestmt             {$$ = (stmt_t*) 0;}
                 | forstmt               {$$ = (stmt_t*) 0;}
@@ -338,10 +338,14 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error opening output file \n");
 		exit(0);
 	}
-	yyparse();
+	printf("DEBUG: Starting yyparse\n");
+    yyparse();
+    printf("DEBUG: yyparse completed, calling printQuads\n");
     printQuads();
+    printf("DEBUG: printQuads completed, calling generate\n");
     generate();
+    printf("DEBUG: generate completed\n");
     print_target_code();
     print_binary_file("alpha.abc");
-    return 0;	
+    return 0;
 }
