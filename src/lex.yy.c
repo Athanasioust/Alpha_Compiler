@@ -1078,18 +1078,19 @@ case 44:
 YY_RULE_SETUP
 #line 90 "lex.l"
 {
-	yylval.sval = strdup(yytext);
-	return STRING;
+    // Remove outer quotes before storing
+    yylval.sval = strndup(yytext + 1, strlen(yytext) - 2);
+    return STRING;
 }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 95 "lex.l"
+#line 96 "lex.l"
 {}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 97 "lex.l"
+#line 98 "lex.l"
 {
 	sscanf(yytext, "%lf", &yylval.nval);
 	return NUM;
@@ -1097,7 +1098,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 102 "lex.l"
+#line 103 "lex.l"
 {
 	sscanf(yytext, "%lf", &yylval.nval);
 	return NUM;
@@ -1106,22 +1107,22 @@ YY_RULE_SETUP
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 107 "lex.l"
+#line 108 "lex.l"
 {}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 109 "lex.l"
+#line 110 "lex.l"
 {
 	fprintf(stderr, "%d : %s : Unrecognised token\n", yylineno, yytext);
 }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 113 "lex.l"
+#line 114 "lex.l"
 ECHO;
 	YY_BREAK
-#line 1125 "lex.yy.c"
+#line 1126 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2138,7 +2139,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 113 "lex.l"
+#line 114 "lex.l"
 
 
 void parseMulticomment(char * type) {

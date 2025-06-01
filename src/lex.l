@@ -88,8 +88,9 @@ multicomment \/\*
 }
 
 {string} {
-	yylval.sval = strdup(yytext);
-	return STRING;
+    // Remove outer quotes before storing
+    yylval.sval = strndup(yytext + 1, strlen(yytext) - 2);
+    return STRING;
 }
 
 {comment} {}

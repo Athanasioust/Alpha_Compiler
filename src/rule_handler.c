@@ -409,6 +409,9 @@ char* HANDLE_IDLIST_IDENT(char* key, int lineno){
 
     temp = makeSymbol(key, lineno, scope);
     temp->type = VAR_FORMAL;
+    temp->space = formalarg;        
+    temp->offset = currScopeOffset(); 
+    incCurrScopeOffset();           
 
     SymTable_insert(table, key, temp);
 
@@ -582,7 +585,8 @@ int check_bool_eligible(Expr* temp) {
 
 Expr* HANDLE_ARITH_OP(iopcode op, Expr* expr1, Expr* expr2){
     Expr* temp;
-
+    //todo maybe this aint needed after all
+/*
     if(check_arith_eligible(expr1) == 1 && check_arith_eligible(expr2) == 1){
         double res;
         switch(op){
@@ -604,7 +608,7 @@ if(check_arith_eligible(expr1) == -1) {
 if(check_arith_eligible(expr2) == -1) {
     fprintf(stderr, "Expression 2 has type %s which is invalid for arithmetic operations.\n", str_iopcodeName[expr2->type]);
     exit(1);
-}
+}*/
 
 
     temp = newExpr(arithmexpr_e);

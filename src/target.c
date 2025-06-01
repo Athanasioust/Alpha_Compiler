@@ -319,10 +319,12 @@ void generate_relational(vmopcode op, quad* q) {
     make_operand(q->arg1, &t.arg1);
     make_operand(q->arg2, &t.arg2);
     
+        
     t.result.type = label_a;
     if (q->label < currQuad) {
         t.result.val = quads[q->label].taddress;
     } else {
+        t.result.val = 0; 
         add_incomplete_jump(curr_instruction, q->label);
     }
     
@@ -417,10 +419,12 @@ void generate_JUMP(quad* q) {
     reset_operand(&t.arg1);
     reset_operand(&t.arg2);
     
+    
     t.result.type = label_a;
     if (q->label < currQuad) {
         t.result.val = quads[q->label].taddress;
     } else {
+        t.result.val = 0;
         add_incomplete_jump(curr_instruction, q->label);
     }
     
@@ -686,7 +690,7 @@ void generate(void) {
 
 void print_vmarg_to_string(vmarg arg, char* buffer, size_t size) {
     switch (arg.type) {
-        case label_a:      snprintf(buffer, size, "label(%u)", arg.val); break;
+        case label_a:       snprintf(buffer, size, "%u", arg.val);; break;
         case global_a:     snprintf(buffer, size, "global(%u)", arg.val); break;
         case local_a:      snprintf(buffer, size, "local(%u)", arg.val); break;
         case formal_a:     snprintf(buffer, size, "formal(%u)", arg.val); break;
