@@ -167,4 +167,8 @@ void print_target_code(void);
 void print_binary_file(const char*);
 void print_const_tables(void);
 
+void generate(void);
+void print_target_code(void);
+void print_binary_file(const char* filename);
+
 #endif // _TARGET_H_
