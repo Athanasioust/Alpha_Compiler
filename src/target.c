@@ -83,8 +83,16 @@ void emit_instruction(instruction* instr) {
         expand_instructions();
     }
     
+    unsigned instr_num = curr_instruction; 
     instructions[curr_instruction] = *instr;
     curr_instruction++;
+    
+    
+    incomplete_jump* ij = ij_head;
+    while (ij && ij->instrNo == instr_num - 1) { 
+        ij->instrNo = instr_num; 
+        break;
+    }
 }
 
 // Reset operand
@@ -271,11 +279,27 @@ void add_incomplete_jump(unsigned instrNo, unsigned iaddress) {
 void patch_incomplete_jumps(void) {
     incomplete_jump* ij = ij_head;
     while (ij) {
-        if (ij->iaddress == currQuad) {
-            instructions[ij->instrNo].result.val = curr_instruction;
+        unsigned target_address;
+        
+        if (ij->iaddress >= currQuad) {
+            // Jump beyond program - go to end
+            target_address = curr_instruction;
+        } else if (ij->iaddress == 0) {
+            // Jump to start
+            target_address = 0;
         } else {
-            instructions[ij->instrNo].result.val = quads[ij->iaddress].taddress;
+            // Normal case - get target quad's instruction address
+            target_address = quads[ij->iaddress].taddress;
         }
+        
+        // Validate instruction number and target
+        if (ij->instrNo < curr_instruction && target_address <= curr_instruction) {
+            instructions[ij->instrNo].result.val = target_address;
+        } else {
+            fprintf(stderr, "Warning: Invalid jump patch - instr %d -> target %d\n", 
+                    ij->instrNo, target_address);
+        }
+        
         incomplete_jump* del = ij;
         ij = ij->next;
         free(del);
@@ -310,7 +334,6 @@ void generate_NOP(void) {
     emit_instruction(&t);
 }
 
-// Generate relational operations
 void generate_relational(vmopcode op, quad* q) {
     instruction t;
     t.opcode = op;
@@ -318,17 +341,14 @@ void generate_relational(vmopcode op, quad* q) {
     
     make_operand(q->arg1, &t.arg1);
     make_operand(q->arg2, &t.arg2);
-    
-        
     t.result.type = label_a;
-    if (q->label < currQuad) {
-        t.result.val = quads[q->label].taddress;
-    } else {
-        t.result.val = 0; 
-        add_incomplete_jump(curr_instruction, q->label);
-    }
     
+    
+    t.result.val = 0;
+    
+    unsigned instr_num = curr_instruction;
     emit_instruction(&t);
+    add_incomplete_jump(instr_num, q->label);
 }
 
 // Generate arithmetic operations
@@ -418,18 +438,17 @@ void generate_JUMP(quad* q) {
     
     reset_operand(&t.arg1);
     reset_operand(&t.arg2);
-    
-    
     t.result.type = label_a;
-    if (q->label < currQuad) {
-        t.result.val = quads[q->label].taddress;
-    } else {
-        t.result.val = 0;
-        add_incomplete_jump(curr_instruction, q->label);
-    }
     
+    
+    t.result.val = 0;
+    
+    unsigned instr_num = curr_instruction;
     emit_instruction(&t);
+    add_incomplete_jump(instr_num, q->label);
 }
+
+
 
 void generate_IF_EQ(quad* q) { generate_relational(jeq_v, q); }
 void generate_IF_NOTEQ(quad* q) { generate_relational(jne_v, q); }
@@ -440,109 +459,144 @@ void generate_IF_LESSEQ(quad* q) { generate_relational(jle_v, q); }
 
 // Logical operations
 void generate_NOT(quad* q) {
-    instruction t;
-    t.opcode = jeq_v;
-    t.srcLine = q->line;
+    // jeq arg1, false, +3
+    instruction t1;
+    t1.opcode = jeq_v;
+    t1.srcLine = q->line;
+    make_operand(q->arg1, &t1.arg1);
+    make_booloperand(&t1.arg2, 0);
+    t1.result.type = label_a;
+    t1.result.val = curr_instruction + 3;
+    emit_instruction(&t1);
     
-    make_operand(q->arg1, &t.arg1);
-    make_booloperand(&t.arg2, 0);
+    // assign false, result
+    instruction t2;
+    t2.opcode = assign_v;
+    t2.srcLine = q->line;
+    make_booloperand(&t2.arg1, 0);
+    reset_operand(&t2.arg2);
+    make_operand(q->result, &t2.result);
+    emit_instruction(&t2);
     
-    t.result.type = label_a;
-    t.result.val = curr_instruction + 3;
-    emit_instruction(&t);
+    // jump +2
+    instruction t3;
+    t3.opcode = jump_v;
+    t3.srcLine = q->line;
+    reset_operand(&t3.arg1);
+    reset_operand(&t3.arg2);
+    t3.result.type = label_a;
+    t3.result.val = curr_instruction + 2;
+    emit_instruction(&t3);
     
-    t.opcode = assign_v;
-    make_booloperand(&t.arg1, 0);
-    reset_operand(&t.arg2);
-    make_operand(q->result, &t.result);
-    emit_instruction(&t);
-    
-    t.opcode = jump_v;
-    reset_operand(&t.arg1);
-    reset_operand(&t.arg2);
-    t.result.type = label_a;
-    t.result.val = curr_instruction + 2;
-    emit_instruction(&t);
-    
-    t.opcode = assign_v;
-    make_booloperand(&t.arg1, 1);
-    reset_operand(&t.arg2);
-    make_operand(q->result, &t.result);
-    emit_instruction(&t);
+    // assign true, result
+    instruction t4;
+    t4.opcode = assign_v;
+    t4.srcLine = q->line;
+    make_booloperand(&t4.arg1, 1);
+    reset_operand(&t4.arg2);
+    make_operand(q->result, &t4.result);
+    emit_instruction(&t4);
 }
 
 void generate_OR(quad* q) {
-    instruction t;
-    t.opcode = jeq_v;
-    t.srcLine = q->line;
+    // jeq arg1, true, +4
+    instruction t1;
+    t1.opcode = jeq_v;
+    t1.srcLine = q->line;
+    make_operand(q->arg1, &t1.arg1);
+    make_booloperand(&t1.arg2, 1);
+    t1.result.type = label_a;
+    t1.result.val = curr_instruction + 4;
+    emit_instruction(&t1);
     
-    make_operand(q->arg1, &t.arg1);
-    make_booloperand(&t.arg2, 1);
+    // jeq arg2, true, +3
+    instruction t2;
+    t2.opcode = jeq_v;
+    t2.srcLine = q->line;
+    make_operand(q->arg2, &t2.arg1);
+    make_booloperand(&t2.arg2, 1);
+    t2.result.type = label_a;
+    t2.result.val = curr_instruction + 3;
+    emit_instruction(&t2);
     
-    t.result.type = label_a;
-    t.result.val = curr_instruction + 4;
-    emit_instruction(&t);
+    // assign false, result
+    instruction t3;
+    t3.opcode = assign_v;
+    t3.srcLine = q->line;
+    make_booloperand(&t3.arg1, 0);
+    reset_operand(&t3.arg2);
+    make_operand(q->result, &t3.result);
+    emit_instruction(&t3);
     
-    make_operand(q->arg2, &t.arg1);
-    make_booloperand(&t.arg2, 1);
-    t.result.val = curr_instruction + 3;
-    emit_instruction(&t);
+    // jump +2
+    instruction t4;
+    t4.opcode = jump_v;
+    t4.srcLine = q->line;
+    reset_operand(&t4.arg1);
+    reset_operand(&t4.arg2);
+    t4.result.type = label_a;
+    t4.result.val = curr_instruction + 2;
+    emit_instruction(&t4);
     
-    t.opcode = assign_v;
-    make_booloperand(&t.arg1, 0);
-    reset_operand(&t.arg2);
-    make_operand(q->result, &t.result);
-    emit_instruction(&t);
-    
-    t.opcode = jump_v;
-    reset_operand(&t.arg1);
-    reset_operand(&t.arg2);
-    t.result.type = label_a;
-    t.result.val = curr_instruction + 2;
-    emit_instruction(&t);
-    
-    t.opcode = assign_v;
-    make_booloperand(&t.arg1, 1);
-    reset_operand(&t.arg2);
-    make_operand(q->result, &t.result);
-    emit_instruction(&t);
+    // assign true, result
+    instruction t5;
+    t5.opcode = assign_v;
+    t5.srcLine = q->line;
+    make_booloperand(&t5.arg1, 1);
+    reset_operand(&t5.arg2);
+    make_operand(q->result, &t5.result);
+    emit_instruction(&t5);
 }
 
+
 void generate_AND(quad* q) {
-    instruction t;
-    t.opcode = jeq_v;
-    t.srcLine = q->line;
+    // jeq arg1, false, +4
+    instruction t1;
+    t1.opcode = jeq_v;
+    t1.srcLine = q->line;
+    make_operand(q->arg1, &t1.arg1);
+    make_booloperand(&t1.arg2, 0);
+    t1.result.type = label_a;
+    t1.result.val = curr_instruction + 4;
+    emit_instruction(&t1);
     
-    make_operand(q->arg1, &t.arg1);
-    make_booloperand(&t.arg2, 0);
+    // jeq arg2, false, +3
+    instruction t2;
+    t2.opcode = jeq_v;
+    t2.srcLine = q->line;
+    make_operand(q->arg2, &t2.arg1);
+    make_booloperand(&t2.arg2, 0);
+    t2.result.type = label_a;
+    t2.result.val = curr_instruction + 3;
+    emit_instruction(&t2);
     
-    t.result.type = label_a;
-    t.result.val = curr_instruction + 4;
-    emit_instruction(&t);
+    // assign true, result
+    instruction t3;
+    t3.opcode = assign_v;
+    t3.srcLine = q->line;
+    make_booloperand(&t3.arg1, 1);
+    reset_operand(&t3.arg2);
+    make_operand(q->result, &t3.result);
+    emit_instruction(&t3);
     
-    make_operand(q->arg2, &t.arg1);
-    make_booloperand(&t.arg2, 0);
-    t.result.val = curr_instruction + 3;
-    emit_instruction(&t);
+    // jump +2
+    instruction t4;
+    t4.opcode = jump_v;
+    t4.srcLine = q->line;
+    reset_operand(&t4.arg1);
+    reset_operand(&t4.arg2);
+    t4.result.type = label_a;
+    t4.result.val = curr_instruction + 2;
+    emit_instruction(&t4);
     
-    t.opcode = assign_v;
-    make_booloperand(&t.arg1, 1);
-    reset_operand(&t.arg2);
-    make_operand(q->result, &t.result);
-    emit_instruction(&t);
-    
-    t.opcode = jump_v;
-    reset_operand(&t.arg1);
-    reset_operand(&t.arg2);
-    t.result.type = label_a;
-    t.result.val = curr_instruction + 2;
-    emit_instruction(&t);
-    
-    t.opcode = assign_v;
-    make_booloperand(&t.arg1, 0);
-    reset_operand(&t.arg2);
-    make_operand(q->result, &t.result);
-    emit_instruction(&t);
+    // assign false, result
+    instruction t5;
+    t5.opcode = assign_v;
+    t5.srcLine = q->line;
+    make_booloperand(&t5.arg1, 0);
+    reset_operand(&t5.arg2);
+    make_operand(q->result, &t5.result);
+    emit_instruction(&t5);
 }
 
 // Function-related operations
@@ -584,6 +638,31 @@ void generate_GETRETVAL(quad* q) {
 
 void generate_FUNCSTART(quad* q) {
     SymbolTableEntry* f = q->result->sym;
+    
+   
+    instruction jump_instr;
+    jump_instr.opcode = jump_v;
+    jump_instr.srcLine = q->line;
+    reset_operand(&jump_instr.arg1);
+    reset_operand(&jump_instr.arg2);
+    jump_instr.result.type = label_a;
+    jump_instr.result.val = 0; 
+    
+    
+    unsigned funcend_quad = 0;
+    for (unsigned i = currQuad; i < total; i++) {
+        if (quads[i].op == funcend && quads[i].result->sym == f) {
+            funcend_quad = i + 1; 
+            break;
+        }
+    }
+    
+    if (funcend_quad < total) {
+        add_incomplete_jump(curr_instruction, funcend_quad);
+    }
+    emit_instruction(&jump_instr);
+    
+    
     f->taddress = curr_instruction;
     q->taddress = curr_instruction;
     
@@ -599,6 +678,7 @@ void generate_FUNCSTART(quad* q) {
     
     emit_instruction(&t);
 }
+
 
 void generate_FUNCEND(quad* q) {
     
@@ -642,10 +722,10 @@ void generate_RETURN(quad* q) {
     
     emit_instruction(&t);
     
-    // Add to return list
+    // Add to return list AFTER getting correct instruction number
     if (funcstack) {
         incomplete_jump* ij = (incomplete_jump*)malloc(sizeof(incomplete_jump));
-        ij->instrNo = curr_instruction;
+        ij->instrNo = curr_instruction; // This will be the jump instruction
         ij->iaddress = 0;
         ij->next = funcstack->returnList;  
         funcstack->returnList = ij;       
@@ -656,6 +736,7 @@ void generate_RETURN(quad* q) {
     reset_operand(&t.arg2);
     reset_operand(&t.result);
     t.result.type = label_a;
+    t.result.val = 0; // Will be patched by backpatch_returns
     
     emit_instruction(&t);
 }
@@ -673,7 +754,6 @@ void backpatch_returns(incomplete_jump* returnList) {
 // Main generation function
 void generate(void) {
     for (unsigned i = 1; i < currQuad; i++) {
-        
         quads[i].taddress = curr_instruction;
         
         if (quads[i].op < 0 || quads[i].op >= sizeof(generators)/sizeof(generators[0])) {
@@ -682,7 +762,6 @@ void generate(void) {
         }
         
         generators[quads[i].op](&quads[i]);
-        
     }
     patch_incomplete_jumps();
     print_const_tables();
