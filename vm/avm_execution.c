@@ -377,10 +377,10 @@ void execute_jgt(instruction* instr) {
 void execute_call(instruction* instr) {
     avm_memcell* func = avm_translate_operand(&instr->arg1, &ax);
     assert(func);
-    avm_callsaveenvironment();
     
     switch (func->type) {
         case userfunc_m: {
+            avm_callsaveenvironment();
             pc = userFuncs[func->data.funcVal].address;
             assert(pc < AVM_ENDING_PC && pc > 0);
             assert(code[pc].opcode == funcenter_v);

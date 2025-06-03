@@ -11,12 +11,33 @@
 #define AVM_WIPEOUT(m) memset(&(m), 0, sizeof(m))
 #define AVM_TABLE_HASHSIZE 211
 
-// VM opcodes (same as target.h)
+
 typedef enum vmopcode {
-    assign_v, add_v, sub_v, mul_v, div_v, mod_v, uminus_v,
-    and_v, or_v, not_v, jeq_v, jne_v, jle_v, jge_v, jlt_v, jgt_v,
-    call_v, pusharg_v, funcenter_v, funcexit_v, newtable_v,
-    tablegetelem_v, tablesetelem_v, jump_v, nop_v
+    assign_v,
+    add_v,
+    sub_v,
+    mul_v,
+    div_v,
+    mod_v,
+    uminus_v,
+    and_v,
+    or_v,
+    not_v,
+    jeq_v,
+    jne_v,
+    jle_v,
+    jge_v,
+    jlt_v,
+    jgt_v,
+    call_v,
+    pusharg_v,
+    funcenter_v,
+    funcexit_v,
+    newtable_v,
+    tablegetelem_v,
+    tablesetelem_v,
+    jump_v,
+    nop_v
 } vmopcode;
 
 // VM argument types (same as target.h)

@@ -23,6 +23,12 @@ unsigned totalNamedLibfuncs = 0;
 userfunc* userFuncs = NULL;
 unsigned totalUserFuncs = 0;
 
+
+void debug_stack_state(const char* location) {
+    printf("DEBUG [%s]: top=%u, topsp=%u, pc=%u\n", location, top, topsp, pc);
+}
+
+
 // Library function dispatch table
 library_func_t libraryFuncs[] = {
     libfunc_print,
@@ -43,32 +49,33 @@ library_func_t libraryFuncs[] = {
 typedef void (*execute_func_t)(instruction*);
 
 execute_func_t executeFuncs[] = {
-    execute_assign,
-    execute_add,
-    execute_sub, 
-    execute_mul,
-    execute_div,
-    execute_mod,
-    execute_uminus,
-    execute_and,
-    execute_or,
-    execute_not,
-    execute_jeq,
-    execute_jne,
-    execute_jle,
-    execute_jge,
-    execute_jlt,
-    execute_jgt,
-    execute_call,
-    execute_pusharg,
-    execute_funcenter,
-    execute_funcexit,
-    execute_newtable,
-    execute_tablegetelem,
-    execute_tablesetelem,
-    execute_jump,
-    execute_nop
+    execute_assign,      // assign_v = 0
+    execute_add,         // add_v = 1
+    execute_sub,         // sub_v = 2
+    execute_mul,         // mul_v = 3
+    execute_div,         // div_v = 4
+    execute_mod,         // mod_v = 5
+    execute_uminus,      // uminus_v = 6
+    execute_and,         // and_v = 7
+    execute_or,          // or_v = 8
+    execute_not,         // not_v = 9
+    execute_jeq,         // jeq_v = 10
+    execute_jne,         // jne_v = 11
+    execute_jle,         // jle_v = 12
+    execute_jge,         // jge_v = 13
+    execute_jlt,         // jlt_v = 14
+    execute_jgt,         // jgt_v = 15
+    execute_jump,        // jump_v = 16
+    execute_call,        // call_v = 17
+    execute_pusharg,     // pusharg_v = 18
+    execute_funcenter,   // funcenter_v = 19
+    execute_funcexit,    // funcexit_v = 20
+    execute_newtable,    // newtable_v = 21
+    execute_tablegetelem,// tablegetelem_v = 22
+    execute_tablesetelem,// tablesetelem_v = 23
+    execute_nop          // nop_v = 24
 };
+
 
 void avm_initialize(void) {
     AVM_WIPEOUT(avm_stack);
@@ -168,14 +175,17 @@ void avm_run(void) {
     instruction* instr;
     
     while (!executionFinished && pc < codeSize) {
+        debug_stack_state("before_instruction");
         instr = &code[pc];
         currLine = instr->srcLine;
         
+
         if (instr->opcode < 0 || instr->opcode >= sizeof(executeFuncs)/sizeof(executeFuncs[0])) {
             avm_error("Invalid opcode: %d", instr->opcode);
             executionFinished = 1;
             break;
         }
+        
         
         executeFuncs[instr->opcode](instr);
         ++pc;
@@ -235,7 +245,6 @@ void avm_assign(avm_memcell* lv, avm_memcell* rv) {
             assert(0);
     }
 }
-
 avm_memcell* avm_translate_operand(vmarg* arg, avm_memcell* reg) {
     switch (arg->type) {
         case global_a:
@@ -278,6 +287,9 @@ avm_memcell* avm_translate_operand(vmarg* arg, avm_memcell* reg) {
             reg->type = libfunc_m;
             reg->data.libfuncVal = namedLibfuncs[arg->val];
             return reg;
+            
+        case -1:  // Empty operand
+            return NULL;
             
         default:
             assert(0);
