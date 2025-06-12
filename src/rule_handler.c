@@ -385,7 +385,7 @@ Expr* HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR(Expr* lvalue, Expr* expression){
     lvalue = emitIfTableItem(lvalue);
     Expr* temp = newExpr(tableitem_e);
     temp->sym = lvalue->sym;
-    temp->index = expression->index;
+    temp->index = expression;
     return temp;
 }
 
@@ -471,9 +471,19 @@ Expr* HANDLE_ELIST_ADD(Expr* expression, Expr* elist){
 }
 
 Expr* HANDLE_INDEXELEM(Expr* index, Expr* value){
-    value->index = index;
-    return value;
+    Expr* e = newExpr(tableitem_e);
+    e->index = index;
+    e->type = value->type;
+
+    // Preserve value
+    e->sym = value->sym;
+    e->numConst = value->numConst;
+    e->strConst = value->strConst;
+    e->boolConst = value->boolConst;
+
+    return e;
 }
+
 
 
 

@@ -27,6 +27,8 @@ void expand (void) {
     total += EXPAND_SIZE;
 }
 
+
+
 // Emit a quad
 void emit(iopcode op, Expr* arg1, Expr* arg2, Expr* result, unsigned label, unsigned line) {
     
