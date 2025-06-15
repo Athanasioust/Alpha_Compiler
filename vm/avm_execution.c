@@ -405,7 +405,14 @@ void execute_call(instruction* instr) {
     }
 }
 
+
 void execute_pusharg(instruction* instr) {
+    // Check if this is the first argument of a new call sequence
+    // by checking if the previous instruction was not pusharg
+    if (pc > 1 && code[pc-1].opcode != pusharg_v) {
+        avm_totalActuals = 0;
+    }
+    
     avm_memcell* arg = avm_translate_operand(&instr->arg1, &ax);
     assert(arg);
     

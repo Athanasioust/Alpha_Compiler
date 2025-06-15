@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.5.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30705
+#define YYBISON 30802
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.7.5"
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -368,12 +368,18 @@ typedef int yy_state_fast_t;
 # define YY_USE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
+# else
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -592,7 +598,7 @@ static const yytype_int8 yytranslate[] =
 };
 
 #if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
        0,    73,    73,    76,    77,    80,    81,    88,    89,    90,
@@ -645,19 +651,6 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_int16 yytoknum[] =
-{
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
-     295,   296,   297,   298,   299,   300,   301,   302,   303
-};
-#endif
-
 #define YYPACT_NINF (-158)
 
 #define yypact_value_is_default(Yyn) \
@@ -668,8 +661,8 @@ static const yytype_int16 yytoknum[] =
 #define yytable_value_is_error(Yyn) \
   ((Yyn) == YYTABLE_NINF)
 
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
      119,  -158,  -158,  -158,   -33,  -158,  -158,     9,    14,   -26,
@@ -693,9 +686,9 @@ static const yytype_int16 yypact[] =
       77,  -158,   316,  -158,  -158,  -158,  -158
 };
 
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
+/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+   Performed when YYTABLE does not specify something else to do.  Zero
+   means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
        4,    81,    46,    82,     0,    93,    98,    80,     0,     0,
@@ -719,7 +712,7 @@ static const yytype_int8 yydefact[] =
        0,    96,     0,    87,    78,   100,    99
 };
 
-  /* YYPGOTO[NTERM-NUM].  */
+/* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
     -158,  -158,    46,  -158,   -17,     0,  -158,  -158,  -158,    21,
@@ -729,7 +722,7 @@ static const yytype_int16 yypgoto[] =
     -158,  -158,  -158,  -158,  -158,  -158
 };
 
-  /* YYDEFGOTO[NTERM-NUM].  */
+/* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
        0,    24,    25,    26,    27,    66,    29,    30,    31,    32,
@@ -739,9 +732,9 @@ static const yytype_uint8 yydefgoto[] =
       44,    50,    45,    46,    47,    48
 };
 
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
+/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule whose
+   number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
       28,   120,    72,    80,    81,    82,    49,   134,    54,    75,
@@ -862,8 +855,8 @@ static const yytype_int16 yycheck[] =
       33,    34
 };
 
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
+/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
+   state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
        0,     3,     4,     5,     6,     8,     9,    10,    11,    12,
@@ -887,7 +880,7 @@ static const yytype_int8 yystos[] =
       77,    53,    54,    80,    40,    87,    41
 };
 
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
        0,    49,    50,    51,    51,    52,    52,    53,    53,    53,
@@ -903,7 +896,7 @@ static const yytype_int8 yyr1[] =
       91,    92,    92,    93,    94
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     1,     0,     1,     2,     2,     1,     1,
@@ -928,6 +921,7 @@ enum { YYENOMEM = -2 };
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
+#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
@@ -968,10 +962,7 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-/* This macro is provided for backward compatibility. */
-# ifndef YY_LOCATION_PRINT
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
+
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -998,10 +989,6 @@ yy_symbol_value_print (FILE *yyo,
   YY_USE (yyoutput);
   if (!yyvaluep)
     return;
-# ifdef YYPRINT
-  if (yykind < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
-# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
@@ -1186,6 +1173,7 @@ yyparse (void)
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yychar = YYEMPTY; /* Cause a token to be read.  */
+
   goto yysetstate;
 
 
@@ -1211,7 +1199,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
+    YYNOMEM;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1239,7 +1227,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+        YYNOMEM;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1250,7 +1238,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          goto yyexhaustedlab;
+          YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
@@ -1271,6 +1259,7 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
+
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1386,19 +1375,19 @@ yyreduce:
   case 3: /* stmts: stmts_other  */
 #line 76 "parser.y"
                                 { (yyval.stmtval) = (yyvsp[0].stmtval); }
-#line 1390 "parser.c"
+#line 1379 "parser.c"
     break;
 
   case 4: /* stmts: %empty  */
 #line 77 "parser.y"
                                         { (yyval.stmtval) = (stmt_t*) 0;}
-#line 1396 "parser.c"
+#line 1385 "parser.c"
     break;
 
   case 5: /* stmts_other: stmt  */
 #line 80 "parser.y"
                                                   { (yyval.stmtval) = (yyvsp[0].stmtval); }
-#line 1402 "parser.c"
+#line 1391 "parser.c"
     break;
 
   case 6: /* stmts_other: stmts_other stmt  */
@@ -1408,397 +1397,397 @@ yyreduce:
                                             else if((yyvsp[0].stmtval)) (yyval.stmtval) = (yyvsp[0].stmtval);
                                             else (yyval.stmtval) = (stmt_t*) 0;
                                         }
-#line 1412 "parser.c"
+#line 1401 "parser.c"
     break;
 
   case 7: /* stmt: expr SEMI_COLON  */
 #line 88 "parser.y"
                              { (yyval.stmtval) = (stmt_t*) 0; makeBoolStmt((yyvsp[-1].exprval));}
-#line 1418 "parser.c"
+#line 1407 "parser.c"
     break;
 
   case 8: /* stmt: ifstmt  */
 #line 89 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
-#line 1424 "parser.c"
+#line 1413 "parser.c"
     break;
 
   case 9: /* stmt: whilestmt  */
 #line 90 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
-#line 1430 "parser.c"
+#line 1419 "parser.c"
     break;
 
   case 10: /* stmt: forstmt  */
 #line 91 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
-#line 1436 "parser.c"
+#line 1425 "parser.c"
     break;
 
   case 11: /* stmt: returnstmt  */
 #line 92 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
-#line 1442 "parser.c"
+#line 1431 "parser.c"
     break;
 
   case 12: /* stmt: continue  */
 #line 93 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
-#line 1448 "parser.c"
+#line 1437 "parser.c"
     break;
 
   case 13: /* stmt: break  */
 #line 94 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
-#line 1454 "parser.c"
+#line 1443 "parser.c"
     break;
 
   case 14: /* stmt: block  */
 #line 95 "parser.y"
                                         {(yyval.stmtval) = (yyvsp[0].stmtval);}
-#line 1460 "parser.c"
+#line 1449 "parser.c"
     break;
 
   case 15: /* stmt: funcdef  */
 #line 96 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
-#line 1466 "parser.c"
+#line 1455 "parser.c"
     break;
 
   case 16: /* stmt: SEMI_COLON  */
 #line 97 "parser.y"
                                         {(yyval.stmtval) = (stmt_t*) 0;}
-#line 1472 "parser.c"
+#line 1461 "parser.c"
     break;
 
   case 17: /* expr: assignexpr  */
 #line 100 "parser.y"
                                           {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1478 "parser.c"
+#line 1467 "parser.c"
     break;
 
   case 18: /* expr: expr PLUS expr  */
 #line 101 "parser.y"
                                     {(yyval.exprval) = HANDLE_ARITH_OP(add, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1484 "parser.c"
+#line 1473 "parser.c"
     break;
 
   case 19: /* expr: expr MINUS expr  */
 #line 102 "parser.y"
                                     {(yyval.exprval) = HANDLE_ARITH_OP(sub, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1490 "parser.c"
+#line 1479 "parser.c"
     break;
 
   case 20: /* expr: expr MUL expr  */
 #line 103 "parser.y"
                                     {(yyval.exprval) = HANDLE_ARITH_OP(mul, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1496 "parser.c"
+#line 1485 "parser.c"
     break;
 
   case 21: /* expr: expr DIV expr  */
 #line 104 "parser.y"
                                     {(yyval.exprval) = HANDLE_ARITH_OP(mydiv, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1502 "parser.c"
+#line 1491 "parser.c"
     break;
 
   case 22: /* expr: expr MOD expr  */
 #line 105 "parser.y"
                                     {(yyval.exprval) = HANDLE_ARITH_OP(mod, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1508 "parser.c"
+#line 1497 "parser.c"
     break;
 
   case 23: /* expr: expr GT expr  */
 #line 106 "parser.y"
                                     {(yyval.exprval) = HANDLE_REL_OP(if_greater, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1514 "parser.c"
+#line 1503 "parser.c"
     break;
 
   case 24: /* expr: expr GET expr  */
 #line 107 "parser.y"
                                     {(yyval.exprval) = HANDLE_REL_OP(if_geatereq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1520 "parser.c"
+#line 1509 "parser.c"
     break;
 
   case 25: /* expr: expr LT expr  */
 #line 108 "parser.y"
                                     {(yyval.exprval) = HANDLE_REL_OP(if_less, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1526 "parser.c"
+#line 1515 "parser.c"
     break;
 
   case 26: /* expr: expr LET expr  */
 #line 109 "parser.y"
                                     {(yyval.exprval) = HANDLE_REL_OP(if_lesseq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1532 "parser.c"
+#line 1521 "parser.c"
     break;
 
   case 27: /* expr: expr EQUAL expr  */
 #line 110 "parser.y"
                                     {makeBoolStmt((yyvsp[-2].exprval)); makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_REL_OP(if_eq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1538 "parser.c"
+#line 1527 "parser.c"
     break;
 
   case 28: /* expr: expr NEQUAL expr  */
 #line 111 "parser.y"
                                     {makeBoolStmt((yyvsp[-2].exprval)); makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_REL_OP(if_noteq, (yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1544 "parser.c"
+#line 1533 "parser.c"
     break;
 
   case 29: /* expr: expr AND M expr  */
 #line 112 "parser.y"
                                     {(yyval.exprval) = HANDLE_BOOL_OP(and, (yyvsp[-3].exprval), (yyvsp[0].exprval), (yyvsp[-1].labelval));}
-#line 1550 "parser.c"
+#line 1539 "parser.c"
     break;
 
   case 30: /* expr: expr OR M expr  */
 #line 113 "parser.y"
                                     {(yyval.exprval) = HANDLE_BOOL_OP(or, (yyvsp[-3].exprval), (yyvsp[0].exprval), (yyvsp[-1].labelval));}
-#line 1556 "parser.c"
+#line 1545 "parser.c"
     break;
 
   case 31: /* expr: term  */
 #line 114 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1562 "parser.c"
+#line 1551 "parser.c"
     break;
 
   case 32: /* term: PAR_OPEN expr PAR_CLOSED  */
 #line 117 "parser.y"
                                           {(yyval.exprval) = (yyvsp[-1].exprval);}
-#line 1568 "parser.c"
+#line 1557 "parser.c"
     break;
 
   case 33: /* term: MINUS expr  */
 #line 118 "parser.y"
                                           {(yyval.exprval) = HANDLE_TERM_TO_UMINUS_EXPR((yyvsp[0].exprval));}
-#line 1574 "parser.c"
+#line 1563 "parser.c"
     break;
 
   case 34: /* term: NOT expr  */
 #line 119 "parser.y"
                                           {(yyval.exprval) = HANDLE_TERM_TO_NOT_EXPR((yyvsp[0].exprval));}
-#line 1580 "parser.c"
+#line 1569 "parser.c"
     break;
 
   case 35: /* term: INC lvalue  */
 #line 120 "parser.y"
                                                 {(yyval.exprval) = HANDLE_TERM_TO_INC_LVALUE((yyvsp[0].exprval), yylineno);}
-#line 1586 "parser.c"
+#line 1575 "parser.c"
     break;
 
   case 36: /* term: lvalue INC  */
 #line 121 "parser.y"
                                                 {(yyval.exprval) = HANDLE_TERM_TO_LVALUE_INC((yyvsp[-1].exprval), yylineno);}
-#line 1592 "parser.c"
+#line 1581 "parser.c"
     break;
 
   case 37: /* term: DEC lvalue  */
 #line 122 "parser.y"
                                                 {(yyval.exprval) = HANDLE_TERM_TO_DEC_LVALUE((yyvsp[0].exprval), yylineno);}
-#line 1598 "parser.c"
+#line 1587 "parser.c"
     break;
 
   case 38: /* term: lvalue DEC  */
 #line 123 "parser.y"
                                                 {(yyval.exprval) = HANDLE_TERM_TO_LVALUE_DEC((yyvsp[-1].exprval), yylineno);}
-#line 1604 "parser.c"
+#line 1593 "parser.c"
     break;
 
   case 39: /* term: prim  */
 #line 124 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1610 "parser.c"
+#line 1599 "parser.c"
     break;
 
   case 40: /* assignexpr: lvalue ASSIGN expr  */
 #line 127 "parser.y"
                                           {makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = HANDLE_ASSIGNEXPR_TO_LVALUE_ASSIGN_EXPRESSION((yyvsp[-2].exprval), (yyvsp[0].exprval), yylineno);}
-#line 1616 "parser.c"
+#line 1605 "parser.c"
     break;
 
   case 41: /* prim: lvalue  */
 #line 129 "parser.y"
                                                 {(yyval.exprval) = HANDLE_PRIM_TO_LVALUE((yyvsp[0].exprval), yylineno);}
-#line 1622 "parser.c"
+#line 1611 "parser.c"
     break;
 
   case 42: /* prim: call  */
 #line 130 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1628 "parser.c"
+#line 1617 "parser.c"
     break;
 
   case 43: /* prim: objectdef  */
 #line 131 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1634 "parser.c"
+#line 1623 "parser.c"
     break;
 
   case 44: /* prim: PAR_OPEN funcdef PAR_CLOSED  */
 #line 132 "parser.y"
                                                 {(yyval.exprval) = HANDLE_PRIM_TO_FUNCDEF((yyvsp[-1].symval));}
-#line 1640 "parser.c"
+#line 1629 "parser.c"
     break;
 
   case 45: /* prim: const  */
 #line 133 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1646 "parser.c"
+#line 1635 "parser.c"
     break;
 
   case 46: /* lvalue: IDENT  */
 #line 136 "parser.y"
                                         {(yyval.exprval) = HANDLE_LVALUE_TO_IDENT((yyvsp[0].sval), yylineno);}
-#line 1652 "parser.c"
+#line 1641 "parser.c"
     break;
 
   case 47: /* lvalue: LOCAL IDENT  */
 #line 137 "parser.y"
                                         {(yyval.exprval) = HANDLE_LVALUE_TO_LOCAL_IDENT((yyvsp[0].sval), yylineno);}
-#line 1658 "parser.c"
+#line 1647 "parser.c"
     break;
 
   case 48: /* lvalue: DOUBLE_COLON IDENT  */
 #line 138 "parser.y"
                                         {(yyval.exprval) = HANDLE_LVALUE_TO_GLOBAL_IDENT((yyvsp[0].sval), yylineno);}
-#line 1664 "parser.c"
+#line 1653 "parser.c"
     break;
 
   case 49: /* lvalue: member  */
 #line 139 "parser.y"
                                         {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1670 "parser.c"
+#line 1659 "parser.c"
     break;
 
   case 50: /* member: lvalue DOT IDENT  */
 #line 142 "parser.y"
                                                                 {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_DOT_IDENT((yyvsp[-2].exprval), (yyvsp[0].sval));}
-#line 1676 "parser.c"
+#line 1665 "parser.c"
     break;
 
   case 51: /* member: lvalue SQUARE_OPEN expr SQUARE_CLOSED  */
 #line 143 "parser.y"
                                                           {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
-#line 1682 "parser.c"
+#line 1671 "parser.c"
     break;
 
   case 52: /* member: call DOT IDENT  */
 #line 144 "parser.y"
                                                                 {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_DOT_IDENT((yyvsp[-2].exprval), (yyvsp[0].sval));}
-#line 1688 "parser.c"
+#line 1677 "parser.c"
     break;
 
   case 53: /* member: call SQUARE_OPEN expr SQUARE_CLOSED  */
 #line 145 "parser.y"
                                                           {(yyval.exprval) = HANDLE_MEMBER_TO_LVALUE_SQUARE_EXPR((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
-#line 1694 "parser.c"
+#line 1683 "parser.c"
     break;
 
   case 54: /* call: call PAR_OPEN elist PAR_CLOSED  */
 #line 148 "parser.y"
                                                                             {(yyval.exprval) = HANDLE_CALL_ELIST((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
-#line 1700 "parser.c"
+#line 1689 "parser.c"
     break;
 
   case 55: /* call: lvalue callsuffix  */
 #line 149 "parser.y"
                                                                             {(yyval.exprval) = HANDLE_CALL_LVALUE_SUFFIX((yyvsp[-1].exprval), (yyvsp[0].callval));}
-#line 1706 "parser.c"
+#line 1695 "parser.c"
     break;
 
   case 56: /* call: PAR_OPEN funcdef PAR_CLOSED PAR_OPEN elist PAR_CLOSED  */
 #line 150 "parser.y"
                                                                             {(yyval.exprval) = HANDLE_CALL_FUNCDEF_ELIST((yyvsp[-4].symval), (yyvsp[-1].exprval));}
-#line 1712 "parser.c"
+#line 1701 "parser.c"
     break;
 
   case 57: /* callsuffix: normcall  */
 #line 153 "parser.y"
                                 {(yyval.callval) = (yyvsp[0].callval);}
-#line 1718 "parser.c"
+#line 1707 "parser.c"
     break;
 
   case 58: /* callsuffix: methodcall  */
 #line 154 "parser.y"
                                 {(yyval.callval) = (yyvsp[0].callval);}
-#line 1724 "parser.c"
+#line 1713 "parser.c"
     break;
 
   case 59: /* normcall: PAR_OPEN elist PAR_CLOSED  */
 #line 157 "parser.y"
                                                                {(yyval.callval) = HANDLE_NORMCALL((yyvsp[-1].exprval));}
-#line 1730 "parser.c"
+#line 1719 "parser.c"
     break;
 
   case 60: /* methodcall: DOUBLE_DOT IDENT PAR_OPEN elist PAR_CLOSED  */
 #line 159 "parser.y"
                                                                {(yyval.callval) = HANDLE_METHODCALL((yyvsp[-3].sval), (yyvsp[-1].exprval));}
-#line 1736 "parser.c"
+#line 1725 "parser.c"
     break;
 
   case 61: /* elist: expr  */
 #line 161 "parser.y"
                                       {makeBoolStmt((yyvsp[0].exprval)); (yyval.exprval) = (yyvsp[0].exprval); (yyval.exprval)->next = NULL;}
-#line 1742 "parser.c"
+#line 1731 "parser.c"
     break;
 
   case 62: /* elist: expr COMMA elist  */
 #line 162 "parser.y"
                                       {(yyval.exprval) = HANDLE_ELIST_ADD((yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1748 "parser.c"
+#line 1737 "parser.c"
     break;
 
   case 63: /* elist: %empty  */
 #line 163 "parser.y"
                                                             {(yyval.exprval) = (Expr*) 0;}
-#line 1754 "parser.c"
+#line 1743 "parser.c"
     break;
 
   case 64: /* objectdef: SQUARE_OPEN objectarg SQUARE_CLOSED  */
 #line 166 "parser.y"
                                                      {(yyval.exprval) = (yyvsp[-1].exprval);}
-#line 1760 "parser.c"
+#line 1749 "parser.c"
     break;
 
   case 65: /* objectarg: elist  */
 #line 168 "parser.y"
                             {(yyval.exprval) = HANDLE_OBJECTDEF_TO_ELIST((yyvsp[0].exprval));}
-#line 1766 "parser.c"
+#line 1755 "parser.c"
     break;
 
   case 66: /* objectarg: indexed  */
 #line 169 "parser.y"
                             {(yyval.exprval) = HANDLE_OBJECTDEF_TO_INDEXED((yyvsp[0].exprval));}
-#line 1772 "parser.c"
+#line 1761 "parser.c"
     break;
 
   case 67: /* indexed: indexedelem  */
 #line 172 "parser.y"
                                                 {(yyval.exprval) = (yyvsp[0].exprval);}
-#line 1778 "parser.c"
+#line 1767 "parser.c"
     break;
 
   case 68: /* indexed: indexedelem COMMA indexed  */
 #line 173 "parser.y"
                                                 {(yyval.exprval) = HANDLE_INDEXED_ADD((yyvsp[-2].exprval), (yyvsp[0].exprval));}
-#line 1784 "parser.c"
+#line 1773 "parser.c"
     break;
 
   case 69: /* indexedelem: BRACKET_OPEN expr COLON expr BRACKET_CLOSED  */
 #line 176 "parser.y"
                                                             {makeBoolStmt((yyvsp[-1].exprval)); (yyval.exprval) = HANDLE_INDEXELEM((yyvsp[-3].exprval), (yyvsp[-1].exprval));}
-#line 1790 "parser.c"
+#line 1779 "parser.c"
     break;
 
   case 70: /* $@1: %empty  */
 #line 178 "parser.y"
                              {scope++; current_table = SymTable_next(current_table);}
-#line 1796 "parser.c"
+#line 1785 "parser.c"
     break;
 
   case 71: /* block: BRACKET_OPEN $@1 stmts BRACKET_CLOSED  */
 #line 178 "parser.y"
                                                                                                            {scope--; SymTable_hide(current_table); current_table = SymTable_prev(current_table); (yyval.stmtval) = (yyvsp[-1].stmtval);}
-#line 1802 "parser.c"
+#line 1791 "parser.c"
     break;
 
   case 72: /* $@2: %empty  */
@@ -1808,7 +1797,7 @@ yyreduce:
 					loopCounterStack = stack_push(loopCounterStack, loopCounter);
 					loopCounter = 0;
 				}
-#line 1812 "parser.c"
+#line 1801 "parser.c"
     break;
 
   case 73: /* funcdef: funcprefix $@2 funcargs funcbody  */
@@ -1819,7 +1808,7 @@ yyreduce:
 					loopCounter = stack_top(loopCounterStack);
 					loopCounterStack = stack_pop(loopCounterStack);
 				}
-#line 1823 "parser.c"
+#line 1812 "parser.c"
     break;
 
   case 74: /* funcbody: block  */
@@ -1828,13 +1817,13 @@ yyreduce:
                     (yyval.func_addr) = currScopeOffset();
                     exitScopeSpace();
                 }
-#line 1832 "parser.c"
+#line 1821 "parser.c"
     break;
 
   case 75: /* funcprefix: FUNCTION funcname  */
 #line 200 "parser.y"
                                   {(yyval.symval) = HANDLE_FUNCPREFIX((yyvsp[0].sval), yylineno);}
-#line 1838 "parser.c"
+#line 1827 "parser.c"
     break;
 
   case 76: /* $@3: %empty  */
@@ -1843,7 +1832,7 @@ yyreduce:
                     scope++; 
                     current_table = SymTable_next(current_table);
                 }
-#line 1847 "parser.c"
+#line 1836 "parser.c"
     break;
 
   case 77: /* $@4: %empty  */
@@ -1853,7 +1842,7 @@ yyreduce:
                     current_table = SymTable_prev(current_table); 
                     functionScopeStack = stack_push(functionScopeStack, scope);
                 }
-#line 1857 "parser.c"
+#line 1846 "parser.c"
     break;
 
   case 78: /* funcargs: PAR_OPEN $@3 idlist $@4 PAR_CLOSED  */
@@ -1862,79 +1851,79 @@ yyreduce:
                     enterScopeSpace();
                     resetFunctionLocalOffset();
                 }
-#line 1866 "parser.c"
+#line 1855 "parser.c"
     break;
 
   case 79: /* funcname: IDENT  */
 #line 219 "parser.y"
                                {(yyval.sval) = HANDLE_FUNCTION_WITH_NAME((yyvsp[0].sval), yylineno);}
-#line 1872 "parser.c"
+#line 1861 "parser.c"
     break;
 
   case 80: /* funcname: %empty  */
 #line 220 "parser.y"
                                {(yyval.sval) = HANDLE_FUNCTION_WITHOUT_NAME(yylineno);}
-#line 1878 "parser.c"
+#line 1867 "parser.c"
     break;
 
   case 81: /* const: NUM  */
 #line 223 "parser.y"
                             {(yyval.exprval) = newExprConstNum((yyvsp[0].nval));}
-#line 1884 "parser.c"
+#line 1873 "parser.c"
     break;
 
   case 82: /* const: STRING  */
 #line 224 "parser.y"
                             {(yyval.exprval) = newExprConstString((yyvsp[0].sval));}
-#line 1890 "parser.c"
+#line 1879 "parser.c"
     break;
 
   case 83: /* const: NIL  */
 #line 225 "parser.y"
                             {(yyval.exprval) = newExpr(nil_e);}
-#line 1896 "parser.c"
+#line 1885 "parser.c"
     break;
 
   case 84: /* const: TRUE  */
 #line 226 "parser.y"
                             {(yyval.exprval) = newExprConstBool(1);}
-#line 1902 "parser.c"
+#line 1891 "parser.c"
     break;
 
   case 85: /* const: FALSE  */
 #line 227 "parser.y"
                             {(yyval.exprval) = newExprConstBool(0);}
-#line 1908 "parser.c"
+#line 1897 "parser.c"
     break;
 
   case 86: /* idlist: IDENT  */
 #line 230 "parser.y"
                                         {HANDLE_IDLIST_IDENT((yyvsp[0].sval), yylineno);}
-#line 1914 "parser.c"
+#line 1903 "parser.c"
     break;
 
   case 87: /* idlist: IDENT COMMA idlist  */
 #line 231 "parser.y"
                                         {HANDLE_IDLIST_IDENT((yyvsp[-2].sval), yylineno);}
-#line 1920 "parser.c"
+#line 1909 "parser.c"
     break;
 
   case 89: /* ifprefix: IF PAR_OPEN expr PAR_CLOSED  */
 #line 235 "parser.y"
                                               {makeBoolStmt((yyvsp[-1].exprval)); (yyval.labelval) = HANDLE_IFPREFIX((yyvsp[-1].exprval));}
-#line 1926 "parser.c"
+#line 1915 "parser.c"
     break;
 
   case 90: /* elseprefix: ELSE  */
 #line 237 "parser.y"
                                                     {(yyval.labelval) = HANDLE_ELSEPREFIX(yylineno);}
-#line 1932 "parser.c"
+#line 1921 "parser.c"
     break;
 
   case 91: /* ifstmt: ifprefix stmt  */
 #line 239 "parser.y"
                               {patchLabel((yyvsp[-1].labelval), nextQuadLabel()); (yyval.stmtval) = (yyvsp[0].stmtval);}
-#line 1938 "parser.c"
+#line 1927 "parser.c"
     break;
 
   case 92: /* ifstmt: ifprefix stmt elseprefix stmt  */
@@ -1945,55 +1934,55 @@ yyreduce:
                     (yyval.stmtval) = (yyvsp[-2].stmtval);
                     if(!(yyval.stmtval)) (yyval.stmtval) = (yyvsp[0].stmtval);
                 }
-#line 1949 "parser.c"
+#line 1938 "parser.c"
     break;
 
   case 93: /* whileprefix: WHILE  */
 #line 248 "parser.y"
                                                     {(yyval.labelval) = nextQuadLabel(); loopCounter++;}
-#line 1955 "parser.c"
+#line 1944 "parser.c"
     break;
 
   case 94: /* whileargs: PAR_OPEN expr PAR_CLOSED  */
 #line 250 "parser.y"
                                               {makeBoolStmt((yyvsp[-1].exprval)); (yyval.labelval) = HANDLE_WHILEARGS((yyvsp[-1].exprval));}
-#line 1961 "parser.c"
+#line 1950 "parser.c"
     break;
 
   case 95: /* whilestmt: whileprefix whileargs stmt  */
 #line 252 "parser.y"
                                                         {HANDLE_WHILE((yyvsp[-2].labelval), (yyvsp[-1].labelval), (yyvsp[0].stmtval)); loopCounter--;}
-#line 1967 "parser.c"
+#line 1956 "parser.c"
     break;
 
   case 96: /* N: %empty  */
 #line 254 "parser.y"
                 {(yyval.labelval) = nextQuadLabel(); emit(jump, NULL, NULL, NULL, 0, yylineno);}
-#line 1973 "parser.c"
+#line 1962 "parser.c"
     break;
 
   case 97: /* M: %empty  */
 #line 255 "parser.y"
                 {(yyval.labelval) = nextQuadLabel();}
-#line 1979 "parser.c"
+#line 1968 "parser.c"
     break;
 
   case 98: /* $@5: %empty  */
 #line 257 "parser.y"
                     {loopCounter++;}
-#line 1985 "parser.c"
+#line 1974 "parser.c"
     break;
 
   case 99: /* forprefix: FOR $@5 PAR_OPEN elist SEMI_COLON M expr SEMI_COLON  */
 #line 257 "parser.y"
                                                                                  {makeBoolStmt((yyvsp[-1].exprval)); (yyval.forprefixval) = HANDLE_FORPREFIX((yyvsp[-2].labelval), (yyvsp[-1].exprval));}
-#line 1991 "parser.c"
+#line 1980 "parser.c"
     break;
 
   case 100: /* forstmt: forprefix N elist PAR_CLOSED N stmt N  */
 #line 259 "parser.y"
                                                       {HANDLE_FORSTMT((yyvsp[-6].forprefixval), (yyvsp[-5].labelval), (yyvsp[-2].labelval), (yyvsp[0].labelval), (yyvsp[-1].stmtval)); loopCounter--;}
-#line 1997 "parser.c"
+#line 1986 "parser.c"
     break;
 
   case 101: /* returnstmt: RETURN SEMI_COLON  */
@@ -2005,7 +1994,7 @@ yyreduce:
                                                     }
                                                     emit(ret, NULL, NULL, NULL, 0, yylineno);
                                                 }
-#line 2009 "parser.c"
+#line 1998 "parser.c"
     break;
 
   case 102: /* returnstmt: RETURN expr SEMI_COLON  */
@@ -2018,7 +2007,7 @@ yyreduce:
                                                     }
                                                     emit(ret, NULL, NULL, (yyvsp[-1].exprval), 0, yylineno);
                                                 }
-#line 2022 "parser.c"
+#line 2011 "parser.c"
     break;
 
   case 103: /* break: BREAK SEMI_COLON  */
@@ -2030,7 +2019,7 @@ yyreduce:
                             exit(1);
                         }
                     }
-#line 2034 "parser.c"
+#line 2023 "parser.c"
     break;
 
   case 104: /* continue: CONTINUE SEMI_COLON  */
@@ -2042,11 +2031,11 @@ yyreduce:
                             exit(1);
                         }
                 }
-#line 2046 "parser.c"
+#line 2035 "parser.c"
     break;
 
 
-#line 2050 "parser.c"
+#line 2039 "parser.c"
 
       default: break;
     }
@@ -2128,6 +2117,7 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
+  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -2188,7 +2178,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
 /*-----------------------------------.
@@ -2196,24 +2186,22 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
-#if !defined yyoverflow
-/*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
-`-------------------------------------------------*/
+/*-----------------------------------------------------------.
+| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
+`-----------------------------------------------------------*/
 yyexhaustedlab:
   yyerror (YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturn;
-#endif
+  goto yyreturnlab;
 
 
-/*-------------------------------------------------------.
-| yyreturn -- parsing is finished, clean up and return.  |
-`-------------------------------------------------------*/
-yyreturn:
+/*----------------------------------------------------------.
+| yyreturnlab -- parsing is finished, clean up and return.  |
+`----------------------------------------------------------*/
+yyreturnlab:
   if (yychar != YYEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at

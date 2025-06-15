@@ -35,3 +35,10 @@ vm/ - Virtual machine source code
 include/ - Header files
 tests/ - Test programs
 Makefile - Build system
+
+We succesfully implemented Numerical Calculations, Lib funcs, User functions, simple tables, logic statements, while loops, for loops.
+
+We did NOT succesfully run all test files. We had the most problem with Complex tables and arrays. 
+
+Overall , the project was a sucess from lexical analysis , to grammar with the parser, to quads , to instructions, to VM everything worked like a clock
+except some small bugs and errors.
