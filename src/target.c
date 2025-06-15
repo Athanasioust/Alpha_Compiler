@@ -69,7 +69,6 @@ generator_func_t generators[] = {
     generate_FUNCSTART
 };
 
-// Expand instruction array
 void expand_instructions(void) {
     assert(total_instructions == curr_instruction);
     instruction* new_instructions = (instruction*)malloc(NEW_SIZE_INSTR + sizeof(instruction));
@@ -81,7 +80,6 @@ void expand_instructions(void) {
     total_instructions += EXPAND_SIZE_INSTR;
 }
 
-// Emit a new instruction
 void emit_instruction(instruction* instr) {
     if (curr_instruction == total_instructions) {
         expand_instructions();
@@ -91,13 +89,11 @@ void emit_instruction(instruction* instr) {
     curr_instruction++;
 }
 
-// Reset operand
 void reset_operand(vmarg* operand) {
     operand->type = -1;
     operand->val = 0;
 }
 
-// Make operand from expression
 void make_operand(Expr* e, vmarg* arg) {
     if (!e) {
         arg->type = nil_a;
@@ -171,24 +167,20 @@ void make_operand(Expr* e, vmarg* arg) {
     }
 }
 
-// Make number operand
 void make_numberoperand(vmarg* arg, double val) {
     arg->type = number_a;
     arg->val = consts_newnumber(val);
 }
 
-// Make boolean operand
 void make_booloperand(vmarg* arg, unsigned val) {
     arg->type = bool_a;
     arg->val = val;
 }
 
-// Make retval operand
 void make_retvaloperand(vmarg* arg) {
     arg->type = retval_a;
 }
 
-// Constants management
 unsigned consts_newstring(char* s) {
     // Check if string already exists
     for (unsigned i = 0; i < currStringConst; i++) {
@@ -196,8 +188,7 @@ unsigned consts_newstring(char* s) {
             return i;
         }
     }
-    
-    // Add new string
+
     if (currStringConst == totalStringConsts) {
         totalStringConsts += 256;
         stringConsts = (char**)realloc(stringConsts, totalStringConsts * sizeof(char*));
@@ -214,8 +205,7 @@ unsigned consts_newnumber(double n) {
             return i;
         }
     }
-    
-    // Add new number
+
     if (currNumConst == totalNumConsts) {
         totalNumConsts += 256;
         numConsts = (double*)realloc(numConsts, totalNumConsts * sizeof(double));
@@ -232,8 +222,7 @@ unsigned libfuncs_newused(char* s) {
             return i;
         }
     }
-    
-    // Add new libfunc
+
     if (currNamedLibfunc == totalNamedLibfuncs) {
         totalNamedLibfuncs += 256;
         namedLibfuncs = (char**)realloc(namedLibfuncs, totalNamedLibfuncs * sizeof(char*));
@@ -244,15 +233,13 @@ unsigned libfuncs_newused(char* s) {
 }
 
 unsigned userfuncs_newfunc(SymbolTableEntry* sym) {
-    
     // Check if user function already exists
     for (unsigned i = 0; i < currUserFunc; i++) {
         if (userFuncs[i] == sym) {
             return i;
         }
     }
-    
-    // Add new user function
+
     if (currUserFunc == totalUserFuncs) {
         totalUserFuncs += 256;
         userFuncs = (SymbolTableEntry**)realloc(userFuncs, totalUserFuncs * sizeof(SymbolTableEntry*));
@@ -263,7 +250,6 @@ unsigned userfuncs_newfunc(SymbolTableEntry* sym) {
     return currUserFunc++;
 }
 
-// Incomplete jumps
 void add_incomplete_jump(unsigned instrNo, unsigned iaddress) {
     incomplete_jump* ij = (incomplete_jump*)malloc(sizeof(incomplete_jump));
     ij->instrNo = instrNo;
@@ -273,7 +259,6 @@ void add_incomplete_jump(unsigned instrNo, unsigned iaddress) {
     ij_total++;
 }
 
-// Fixed patch_incomplete_jumps function
 void patch_incomplete_jumps(void) {
     incomplete_jump* ij = ij_head;
     while (ij) {
@@ -300,7 +285,6 @@ void patch_incomplete_jumps(void) {
     ij_total = 0;
 }
 
-// Function stack
 void push_funcstack(SymbolTableEntry* f) {
     func_stack* fs = (func_stack*)malloc(sizeof(func_stack));
     fs->func = f;
@@ -343,7 +327,6 @@ void generate_relational(vmopcode op, quad* q) {
     add_incomplete_jump(instr_num, q->label);
 }
 
-// Generate arithmetic operations
 void generate_arithmetic(vmopcode op, quad* q) {
     instruction t;
     t.opcode = op;
@@ -356,7 +339,6 @@ void generate_arithmetic(vmopcode op, quad* q) {
     emit_instruction(&t);
 }
 
-// Specific generators
 void generate_ADD(quad* q) { generate_arithmetic(add_v, q); }
 void generate_SUB(quad* q) { generate_arithmetic(sub_v, q); }
 void generate_MUL(quad* q) { generate_arithmetic(mul_v, q); }
@@ -816,8 +798,6 @@ void print_target_code(void) {
     }
 }
 
-
-// Binary file output
 void print_binary_file(const char* filename) {
     FILE* file = fopen(filename, "wb");
     if (!file) {
@@ -867,34 +847,29 @@ void print_binary_file(const char* filename) {
     fclose(file);
 }
 
-// Συνάρτηση για εκτύπωση όλων των πινάκων σταθερών
 void print_const_tables(void) {
     unsigned i;
     
     printf("\n========== CONSTANT TABLES ==========\n");
     
-    // Εκτύπωση πίνακα αριθμών
     printf("\n--- NUMBER CONSTANTS ---\n");
     printf("Total: %u\n", currNumConst);
     for (i = 0; i < currNumConst; i++) {
         printf("[%3u] %.6f\n", i, numConsts[i]);
     }
-    
-    // Εκτύπωση πίνακα strings
+
     printf("\n--- STRING CONSTANTS ---\n");
     printf("Total: %u\n", currStringConst);
     for (i = 0; i < currStringConst; i++) {
         printf("[%3u] \"%s\"\n", i, stringConsts[i]);
     }
-    
-    // Εκτύπωση πίνακα library functions
+
     printf("\n--- LIBRARY FUNCTIONS USED ---\n");
     printf("Total: %u\n", currNamedLibfunc);
     for (i = 0; i < currNamedLibfunc; i++) {
         printf("[%3u] %s\n", i, namedLibfuncs[i]);
     }
-    
-    // Εκτύπωση πίνακα user functions
+
     printf("\n--- USER FUNCTIONS ---\n");
     printf("Total: %u\n", currUserFunc);
     for (i = 0; i < currUserFunc; i++) {

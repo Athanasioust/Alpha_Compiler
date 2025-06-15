@@ -60,12 +60,9 @@ void avm_calllibfunc(char* funcName) {
         avm_error("Unsupported library function '%s' called!", funcName);
         executionFinished = 1;
     } else {
-        // Library functions don't need environment save/restore
-        // Just call the function directly
+
         f();
         
-        // Clear the arguments from the stack
-        // The arguments were pushed by pusharg instructions
         while (avm_totalActuals > 0) {
             avm_memcellclear(&avm_stack[top + 1]);
             ++top;

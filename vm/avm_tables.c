@@ -10,17 +10,14 @@ static unsigned avm_hash_string(char* str) {
     return hash % AVM_TABLE_HASHSIZE;
 }
 
-// Hash function for numbers
 static unsigned avm_hash_number(double num) {
     return ((unsigned)(num * 2654435761U)) % AVM_TABLE_HASHSIZE;
 }
 
-// Hash function for functions
 static unsigned avm_hash_func(unsigned funcVal) {
     return (funcVal * 2654435761U) % AVM_TABLE_HASHSIZE;
 }
 
-// Create new table
 avm_table* avm_tablenew(void) {
     avm_table* t = (avm_table*)malloc(sizeof(avm_table));
     AVM_WIPEOUT(*t);
@@ -35,14 +32,12 @@ avm_table* avm_tablenew(void) {
     return t;
 }
 
-// Initialize bucket arrays
 void avm_tablebucketsinit(avm_table_bucket** p) {
     for (unsigned i = 0; i < AVM_TABLE_HASHSIZE; ++i) {
         p[i] = (avm_table_bucket*)0;
     }
 }
 
-// Destroy bucket arrays
 void avm_tablebucketsdestroy(avm_table_bucket** p) {
     for (unsigned i = 0; i < AVM_TABLE_HASHSIZE; ++i) {
         for (avm_table_bucket* b = p[i]; b;) {
@@ -56,7 +51,6 @@ void avm_tablebucketsdestroy(avm_table_bucket** p) {
     }
 }
 
-// Destroy table
 void avm_tabledestroy(avm_table* t) {
     avm_tablebucketsdestroy(t->strIndexed);
     avm_tablebucketsdestroy(t->numIndexed);
@@ -128,7 +122,6 @@ static unsigned char avm_tablekey_equal(avm_memcell* k1, avm_memcell* k2) {
     }
 }
 
-// Set table element
 void avm_tablesetelem(avm_table* table, avm_memcell* index, avm_memcell* content) {
     assert(table && index);
     
@@ -184,7 +177,6 @@ void avm_tablesetelem(avm_table* table, avm_memcell* index, avm_memcell* content
     if (bucket) {
         avm_assign(&bucket->value, content);
     } else {
-        // Create new bucket
         bucket = (avm_table_bucket*)malloc(sizeof(avm_table_bucket));
         bucket->next = buckets[hash];
         buckets[hash] = bucket;
@@ -195,7 +187,6 @@ void avm_tablesetelem(avm_table* table, avm_memcell* index, avm_memcell* content
     }
 }
 
-// Get table element
 avm_memcell* avm_tablegetelem(avm_table* table, avm_memcell* index) {
     assert(table && index);
     
@@ -219,7 +210,6 @@ avm_memcell* avm_tablegetelem(avm_table* table, avm_memcell* index) {
     return NULL;
 }
 
-// Traverse table with visitor function
 void avm_table_traverse(avm_table* table, avm_table_visitor_t visitor, avm_memcell* result) {
     unsigned index = 0;
     
@@ -245,7 +235,6 @@ void avm_table_traverse(avm_table* table, avm_table_visitor_t visitor, avm_memce
     }
 }
 
-// Visitor function for getting keys
 void avm_table_keys_visitor(avm_memcell* key, avm_memcell* value, unsigned* index, avm_memcell* result) {
     (void)value; // Unused parameter
     
@@ -262,7 +251,6 @@ void avm_table_copy_visitor(avm_memcell* key, avm_memcell* value, unsigned* inde
     avm_tablesetelem(result->data.tableVal, key, value);
 }
 
-// Convert table to string representation
 char* avm_table_tostring(avm_table* table) {
     static char buffer[2048];
     char* ptr = buffer;

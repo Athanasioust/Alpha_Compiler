@@ -31,7 +31,7 @@ Expr* makeExpr(SymbolTableEntry* sym){
     return e;
 }
 
-
+// The function constructs and emits the necessary instructions to perform a function call
 Expr* makeCall (Expr* lvalue, Expr* reversed_elist) {
     Expr* func = emitIfTableItem(lvalue);
     while (reversed_elist) {
@@ -595,32 +595,6 @@ int check_bool_eligible(Expr* temp) {
 
 Expr* HANDLE_ARITH_OP(iopcode op, Expr* expr1, Expr* expr2){
     Expr* temp;
-    //todo maybe this aint needed after all
-/*
-    if(check_arith_eligible(expr1) == 1 && check_arith_eligible(expr2) == 1){
-        double res;
-        switch(op){
-            case add:   res = expr1->numConst + expr2->numConst; break;
-            case sub:   res = expr1->numConst - expr2->numConst; break;
-            case mul:   res = expr1->numConst * expr2->numConst; break;
-            case mydiv: res = expr1->numConst / expr2->numConst; break;
-            case mod:   res = (long long)expr1->numConst % (long long)expr2->numConst; break;
-            default: assert(0);
-        }
-        return newExprConstNum(res);
-    }
-
-if(check_arith_eligible(expr1) == -1) {
-    fprintf(stderr, "Expression 1 has type %s which is invalid for arithmetic operations.\n", str_iopcodeName[expr1->type]);
-    exit(1);
-}
-
-if(check_arith_eligible(expr2) == -1) {
-    fprintf(stderr, "Expression 2 has type %s which is invalid for arithmetic operations.\n", str_iopcodeName[expr2->type]);
-    exit(1);
-}*/
-
-
     temp = newExpr(arithmexpr_e);
     temp->sym = newTemp();
     // Make sure newTemp() is working correctly

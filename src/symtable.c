@@ -33,17 +33,14 @@ static unsigned int SymTable_hash(const char *key, size_t max_size){
     return uiHash % max_size;
 }
 
-//Structs
 typedef struct List* List_T;
 
-//List struct
 struct List {
     char* key;
     SymbolTableEntry* val;
     struct List* next;
 };
 
-//SymTable struct
 struct SymTable{
     size_t max_size;
     size_t length;
@@ -52,7 +49,6 @@ struct SymTable{
     struct SymTable* prev;
 };
 
-//Create a new hash table
 SymTable_T SymTable_new(void){
     SymTable_T table = malloc(sizeof(struct SymTable));
 
@@ -65,7 +61,6 @@ SymTable_T SymTable_new(void){
     return table;
 }
 
-//Get the size of the hash table
 size_t get_size(size_t max_size){
 	int index = 0;
 	for(int i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
@@ -78,9 +73,6 @@ size_t get_size(size_t max_size){
     return sizes[(index <= 7 ? index : 7)];
 }
 
-
-
-//Free the hash table
 void SymTable_free(SymTable_T oSymTable){
     List_T temp;
     List_T prev;
@@ -111,14 +103,11 @@ void SymTable_free(SymTable_T oSymTable){
 }
 
 
-//Get the length of the hash table
 unsigned int SymTable_getLength(SymTable_T oSymTable){ 
     assert(oSymTable);
     return oSymTable->length;
 }
 
-
-//Rehash the hash table
 void rehash(SymTable_T table){
     size_t i;
     List_T prev_node;
@@ -146,8 +135,6 @@ void rehash(SymTable_T table){
     free(prev_buckets);
     
 }
-
-//Insert a new entry in the hash table
 
 SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolTableEntry* value){
     List_T new;
@@ -182,8 +169,6 @@ SymbolTableEntry* SymTable_insert(SymTable_T oSymTable, const char *key, SymbolT
     return new->val;
 }
 
-
-//Hide the entries of the hash table
 void SymTable_hide(SymTable_T oSymTable){
     List_T temp;
     size_t i;
@@ -200,7 +185,6 @@ void SymTable_hide(SymTable_T oSymTable){
     return;
 }
 
-//Lookup an entry in the hash table
 SymbolTableEntry* SymTable_lookup(SymTable_T oSymTable, const char *key){
     List_T temp;
     SymTable_T current = oSymTable;
@@ -221,7 +205,6 @@ SymbolTableEntry* SymTable_lookup(SymTable_T oSymTable, const char *key){
     return NULL;
 }
 
-//Lookup an active entry in the current hash table
 SymbolTableEntry* SymTable_lookup_here(SymTable_T oSymTable, const char *key){
     List_T temp;
     assert(oSymTable);
@@ -237,9 +220,6 @@ SymbolTableEntry* SymTable_lookup_here(SymTable_T oSymTable, const char *key){
     return NULL;
 }
 
-
-
-//Map the hash table
 void SymTable_map(SymTable_T oSymTable, void (*pfApply)(const char *key, SymbolTableEntry* value, void *pvExtra), void *pvExtra){
     List_T temp;
     size_t i;
@@ -255,9 +235,6 @@ void SymTable_map(SymTable_T oSymTable, void (*pfApply)(const char *key, SymbolT
     }
 }
 
-
-
-//Get the next hash table
 SymTable_T SymTable_next(SymTable_T oSymTable){
     assert(oSymTable);
     if(!oSymTable->next){
@@ -268,8 +245,6 @@ SymTable_T SymTable_next(SymTable_T oSymTable){
     return oSymTable->next;
 }
 
-
-//Get the previous hash table
 SymTable_T SymTable_prev(SymTable_T oSymTable){
     assert(oSymTable);
     assert(oSymTable->prev);
@@ -277,8 +252,6 @@ SymTable_T SymTable_prev(SymTable_T oSymTable){
     return oSymTable->prev;
 }
 
-
-//Print the hash table
 void SymTable_print(SymTable_T oSymTable){
     List_T temp;
     size_t i;

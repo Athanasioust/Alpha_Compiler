@@ -163,7 +163,7 @@ void avm_load_program(const char* filename) {
     fclose(file);
     
     // Initialize stack to accommodate global variables
-    top = AVM_STACKSIZE - 1 - 200;  // Reserve space for at least 200 globals
+    top = AVM_STACKSIZE - 1 - 200;  // Reserve space for at least 200 GLOBAL_STACKSIZE
     topsp = top;
 }
 
