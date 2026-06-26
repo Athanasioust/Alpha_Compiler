@@ -95,3 +95,7 @@ The following bugs were identified and fixed after the initial implementation:
 | 8 | `src/target.c` | `consts_newstring`, `consts_newnumber`, and `libfuncs_newused` did not check `realloc`'s return value, leaking memory and crashing on allocation failure |
 | 9 | `src/rule_handler.c` | Relational-operator error messages indexed `str_iopcodeName[]` (opcode names) with an `ExprType` value; fixed by introducing a dedicated `str_ExprTypeName[]` array |
 | 10 | `vm/avm_execution.c` | `execute_funcenter` contained a no-op `if (avm_totalActuals == 0) avm_totalActuals = 0` branch |
+
+## License
+
+This project is released under the [MIT License](LICENSE).

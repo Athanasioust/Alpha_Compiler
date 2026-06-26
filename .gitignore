@@ -1,0 +1,13 @@
+# Claude Code local files
+.claude/
+
+# Build artifacts
+*.o
+*.obj
+binary.abc
+vm/binary.abc
+
+# Generated parser/lexer files
+lex.yy.c
+*.tab.c
+*.tab.h
